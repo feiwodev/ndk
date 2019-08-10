@@ -1,0 +1,28 @@
+- c/ : 'C语言基础'
+- c/c-1-basic.md: 基础语法
+- c/c-2-pointer.md: 指针内存分析
+- c/c-3-func-2pointer.md: 函数与二级指针
+- c/c-4-func-pointer.md: 函数指针
+- c/c-5-dynamic-m.md: 动态内存分配
+- c/c-6-str-op.md: 字符操作
+- c/c-7-struct-pointer.md: 结构体与指针
+- c/c-8-file-io.md: 文件IO
+- c/c-9-enum.md: 联合体与枚举
+- c/c-10-jni.md: 预编译及jni-h分析
+- cpp/ : 'C++基础'
+- cpp/cpp-1-namespace-struct-ref.md: 命名空间结构体和引用
+- cpp/cpp-2-constructor-copy_func.md: 构造函数，析构函数，拷贝构造函数
+- cpp/cpp-3-oop.md: new对象，继承，友元函数，函数的可变参数
+- cpp/cpp-4-template-exception.md: 多态，模板，异常
+- jni/ : 'Java与C通信的桥梁-JNI'
+- jni/jni-1-basic.md: JNI概念及开发流程
+- jni/jni-2-h-file.md: 头文件分析
+- jni/jni-3-call-java-field-method.md: C语言调用Java字段与方法
+- jni/jni-4-call-constructor-method.md: C语言调用构造方法
+- jni/jni-5-ref-handle.md: 对象引用的处理
+- ndk/ : 'Android NDK编写'
+- ndk/ndk-1-as-ndk.md: 使用Android-Studio编写NDK
+- ndk/ndk-2-file-split-join.md: 文件加密解密与分割合并
+- ndk/ndk-3-update-1.md: 增量更新之服务器端生成差分包
+- ndk/ndk-4-update-2.md: 增量更新之客户端合并差分包
+- ndk/ndk-5-conf.md: 基于已有项目的NDK环境配置

@@ -1,0 +1,189 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>文件IO - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/index.html" class="breadcrumb-item">C语言基础</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/c-8-file-io.html" class="breadcrumb-item">文件IO</a></div><h1 class="article-title">文件IO</h1><div class="article"><p>在结构体与指针中 ， 我们了解到结构体与java中的类相似 ， 也是一种自定义类型数据结构 ， 也学习了结构的各种用法 ， 以及简单的应用 。</p><p>在编写应用程序的时候 ， 文件IO操作是不可避免的 ， 小到日志本地化收集 ， 大到数据格式化存储 ， 都需要使用文件IO ， 来操作文件流进行数据处理 。在使用java开发的时候 ， 我们有<code>File</code>类和<code>FileReader</code>,<code>FileWriter</code>类来搭配使用 ， 也有<code>FileInputStream</code>,<code>FileOutputStream</code>和<code>BufferedInputStream</code>,<code>BufferedOutputStream</code>金牌组合 。使得java中的文件IO很方便 ， 下面我们就来看看简单的java文件IO示例：</p><pre class="hljs"><code>     <span class="hljs-comment">// 读取文件中的字符</span>
+	<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">readString</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>{
+		File _file = <span class="hljs-keyword">new</span> File(<span class="hljs-string">"e:"</span>+separetor+<span class="hljs-string">"a.txt"</span>) ;
+		<span class="hljs-keyword">if</span> (!_file.exists()) {
+			<span class="hljs-keyword">boolean</span> createStatuts = _file.createNewFile() ;
+			<span class="hljs-keyword">if</span> (createStatuts) {
+				System.out.println(<span class="hljs-string">"创建了一个新文件 ，并且创建成功了"</span>);
+			}<span class="hljs-keyword">else</span> {
+				System.out.println(<span class="hljs-string">"创建新文件失败"</span>);
+			}
+		}
+		
+		<span class="hljs-comment">// 创建输入流</span>
+		InputStream fileInputStream = <span class="hljs-keyword">new</span> FileInputStream(_file) ;
+		<span class="hljs-keyword">byte</span>[] bytes = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">1024</span>] ;
+		<span class="hljs-keyword">int</span> len = -<span class="hljs-number">1</span>;
+		StringBuffer buffer = <span class="hljs-keyword">new</span> StringBuffer() ;
+		<span class="hljs-keyword">while</span> ((len = fileInputStream.read(bytes)) != -<span class="hljs-number">1</span>) {
+			buffer.append(<span class="hljs-keyword">new</span> String(bytes,<span class="hljs-number">0</span>,len)) ;
+		}
+		<span class="hljs-comment">// 关闭输入流</span>
+		fileInputStream.close() ;
+		
+		System.out.println(buffer.toString());
+	}
+
+    <span class="hljs-comment">// 将字符串写入文件</span>
+	<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">writeString</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>{
+		File _file = <span class="hljs-keyword">new</span> File(<span class="hljs-string">"e:"</span>+separetor+<span class="hljs-string">"a.txt"</span>) ;
+		<span class="hljs-keyword">if</span> (!_file.exists()) {
+			<span class="hljs-keyword">boolean</span> createStatuts = _file.createNewFile() ;
+			<span class="hljs-keyword">if</span> (createStatuts) {
+				System.out.println(<span class="hljs-string">"创建了一个新文件 ，并且创建成功了"</span>);
+			}<span class="hljs-keyword">else</span> {
+				System.out.println(<span class="hljs-string">"创建新文件失败"</span>);
+			}
+		}
+		
+		<span class="hljs-comment">// 创建输出流</span>
+		OutputStream fileOutputStream = <span class="hljs-keyword">new</span> FileOutputStream(_file) ;
+		String info = <span class="hljs-string">"《op 青空 pure rouge 君吻》《君吻 その目に映るもの piano》"</span> ;
+		fileOutputStream.write(info.getBytes()) ;
+		<span class="hljs-comment">// 关闭输出流</span>
+		fileOutputStream.close() ;
+		
+	}
+</code></pre><h3 id="文件io操作步骤：">文件IO操作步骤： <a class="markdownIt-Anchor" href="#文件io操作步骤：">#</a></h3><p>1.创建一个File对象（需要操作的文件）<br>2.构建输入输出流<br>3.创建缓冲区 ， 缓存读写数据 （将流数据读入到内存或写入到磁盘）<br>3.关闭流 （关闭文件流）</p><p>语言都是相通的 ， 在C语言中文件IO的操作也是如上述几步 ， 下面我们就一起来看看：</p><pre class="hljs"><code><span class="hljs-comment">/*读取文本文件*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">readTextFile</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-keyword">char</span>* path = <span class="hljs-string">"C:\\Users\\Zeno\\Documents\\Visual Studio 2015\\Projects\\Hello_C\\Hello_C\\StructPointer.c"</span>;
+
+	<span class="hljs-comment">// 打开文件</span>
+	FILE* fp = fopen(path, <span class="hljs-string">"r"</span>);
+	<span class="hljs-keyword">if</span> (fp == <span class="hljs-literal">NULL</span>)
+	{
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"打开文件失败\n"</span>);
+		<span class="hljs-keyword">return</span>;
+	}
+	<span class="hljs-comment">// 字符缓冲区 ， 每次读一个字符串 ， 都会缓存到字符数组中</span>
+	<span class="hljs-keyword">char</span> buffer[<span class="hljs-number">1024</span>];
+	<span class="hljs-keyword">while</span> (fgets(buffer, <span class="hljs-number">1024</span>, fp)) {
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"%s"</span>, buffer);
+	}
+
+	<span class="hljs-comment">// 关闭文件流</span>
+	fclose(fp);
+
+<span class="hljs-comment">/*写入文本文件*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">writeTextFile</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-keyword">char</span>* path = <span class="hljs-string">"E:\\document\\write.txt"</span>;
+
+	<span class="hljs-keyword">char</span>* content = <span class="hljs-string">"如果 爱情是一场花火 ,一闪即逝的花火,我也要去追求\n如果 爱情是一场花火 ,一闪即逝的花火,我也要去追求\n"</span>;
+
+	<span class="hljs-comment">// 打开文件</span>
+	<span class="hljs-comment">/*
+		打开只写文件，若文件存在则文件长度清为0，即该文件内容会消失。若文件不存在则建立该文件。
+	*/</span>
+	FILE* fp = fopen(path, <span class="hljs-string">"w"</span>);
+	<span class="hljs-keyword">if</span> (fp == <span class="hljs-literal">NULL</span>)
+	{
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"打开文件失败\n"</span>);
+		<span class="hljs-keyword">return</span>;
+	}
+	<span class="hljs-comment">// 写入文件</span>
+	<span class="hljs-built_in">fputs</span>(content, fp);
+
+	<span class="hljs-comment">// 关闭文件流</span>
+	fclose(fp);
+}
+}
+</code></pre><p>首先使用<code>fopen</code>函数得到一个文件指针 ， 操作符<code>r</code>为读取文件流 ， 构建了一个<code>buffer</code>数据缓冲区 ， 通过<code>fgets</code>函数循环读取文件数据 ， <code>fclose</code>函数关闭文件流 。在操作文件IO的时候 ， 最重要的函数 ， 莫过于<code>fopen</code>函数了 ， 首先我们来看一下<code>fopen</code>函数的定义：</p><pre class="hljs"><code>_ACRTIMP FILE* __<span class="hljs-function">cdecl <span class="hljs-title">fopen</span><span class="hljs-params">(
+    _In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _FileName,
+    _In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _Mode
+    )</span></span>;
+</code></pre><p>我们发现<code>fopen</code>函数 ， 需要传入文件全路径名称 ， 还有一个<code>_Mode</code> ， 这个是文件操作模式 ， C语言中文件操作主要依靠操作模式来辨别是输入流还是输出流的 。<br>下面列举一些常用的操作模式：</p><pre class="hljs"><code>mode有下列几种形态字符串:
+
+r 打开只读文件，该文件必须存在。
+
+r+ 打开可读写的文件，该文件必须存在。
+
+w 打开只写文件，若文件存在则文件长度清为<span class="hljs-number">0</span>，即该文件内容会消失。若文件不存在则建立该文件。
+
+w+ 打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。若文件不存在则建立该文件。
+
+a 以附加的方式打开只写文件。若文件不存在，则会建立该文件，如果文件存在，写入的数据会被加到文件尾，即文件原先的内容会被保留。
+
+a+ 以附加方式打开可读写的文件。若文件不存在，则会建立该文件，如果文件存在，写入的数据会被加到文件尾后，即文件原先的内容会被保留。
+</code></pre><p>值得注意的是 ， 上述操作模式是针对文本文件的 ， 如果要操作二进制文件 ， 则需要在上述操作符后面加上<code>b</code> ， 如<code>rb</code>,<code>wb</code>,<code>ab</code> ， 等等 。</p><p>不论是文本文件的操作还是字符文件的操作 ， 都是 ， 打开文件 ， 创建缓冲区 ， 读写文件 。</p><h3 id="二进制文件读写">二进制文件读写 <a class="markdownIt-Anchor" href="#二进制文件读写">#</a></h3><pre class="hljs"><code><span class="hljs-comment">/*读写二进制文件 -- 复制文件*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">fileCopy</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-keyword">char</span>* currentPath = <span class="hljs-string">"E:\\android_pdf\\研磨设计模式.pdf"</span>;
+	<span class="hljs-keyword">char</span>* destPath = <span class="hljs-string">"E:\\android_pdf\\研磨设计模式_new.pdf"</span>;
+
+	<span class="hljs-comment">// 打开文件</span>
+	FILE* currentFile_P = fopen(currentPath, <span class="hljs-string">"rb"</span>);
+	FILE* destFile_P = fopen(destPath, <span class="hljs-string">"wb"</span>);
+
+	<span class="hljs-comment">// 先读取再写入</span>
+	<span class="hljs-keyword">int</span> buffer[<span class="hljs-number">1024</span>]; <span class="hljs-comment">// 数据缓冲区</span>
+	<span class="hljs-keyword">int</span> len; <span class="hljs-comment">// 每次读取数据的长度</span>
+	<span class="hljs-keyword">while</span> ((len = fread(buffer,<span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">int</span>),<span class="hljs-number">1024</span>,currentFile_P)) != EOF)
+	{
+		<span class="hljs-comment">// 将缓冲区里的内容写入到文件中</span>
+		fwrite(buffer, <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">int</span>), len, destFile_P);
+	}
+
+	<span class="hljs-comment">// 关闭流</span>
+	fclose(destFile_P);
+	fclose(currentFile_P);
+}
+</code></pre><p>读写二进制和读写文本文件没多少区别 ， 最大的区别就是<code>fopen</code>函数中的模式的不同 ， 文本文件是<code>r</code>,<code>w</code> ， 二进制文件是<code>rb</code>,<code>wb</code> 。</p><p>了解了文件IO的基本操作 ， 我们使用文件IO流写一个加密解密的小程序。我们知道 ， 所有的文件都是以二进制存储的 ， 我们看的文本文件， 图片文件 ， 视频文件 ， 都是以二进制存储在磁盘上的 ， 那么 ， 我们可以将文件读取出来 ， 进行二进制运算 ， 就可以将文件加密解密了 。下面我们通过<code>^</code>异或运算来进行文件的加密解密 ， 异或运算的规则如下:</p><pre class="hljs"><code><span class="hljs-number">0</span> ^ <span class="hljs-number">1</span> 得 <span class="hljs-number">1</span>
+<span class="hljs-number">1</span> ^ <span class="hljs-number">1</span> 得 <span class="hljs-number">0</span>
+<span class="hljs-number">0</span> ^ <span class="hljs-number">0</span> 得 <span class="hljs-number">0</span>
+<span class="hljs-number">1</span> ^ <span class="hljs-number">0</span> 得 <span class="hljs-number">1</span>
+</code></pre><p>相同为0 不同为1 , 例如 ， 我们将<code>4</code>这个数加密 ， 异或的数是5 ， 下面我们来看看运算：</p><pre class="hljs"><code><span class="hljs-number">4</span>的二进制是：<span class="hljs-number">0100</span>
+<span class="hljs-number">5</span>的二进制是：<span class="hljs-number">0101</span>
+异或运算结果（加密）：<span class="hljs-number">4</span> ^ <span class="hljs-number">5</span>  == <span class="hljs-number">0001</span>    
+异或运算结果（解密）： <span class="hljs-number">0001</span> ^ <span class="hljs-number">0101</span> == <span class="hljs-number">0100</span>   
+由上述可见 ， ^一次为加密 ， 再^一次就是解密
+</code></pre><p>代码示例如下：</p><h3 id="文件加密">文件加密 <a class="markdownIt-Anchor" href="#文件加密">#</a></h3><pre class="hljs"><code><span class="hljs-comment">/*加密文件*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">encryptFile</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-comment">// 待加密文件路径</span>
+	<span class="hljs-keyword">char</span>* normal_path = <span class="hljs-string">"E:\\poto\\xj.jpg"</span>;
+	<span class="hljs-comment">// 加密后文件路径</span>
+	<span class="hljs-keyword">char</span>* encrypt_path = <span class="hljs-string">"E:\\poto\\xj_encrypt.jpg"</span>;
+
+	<span class="hljs-comment">//打开文件</span>
+	FILE* normal_fp = fopen(normal_path, <span class="hljs-string">"rb"</span>);
+	FILE* encrypt_fp = fopen(encrypt_path, <span class="hljs-string">"wb"</span>);
+	<span class="hljs-comment">// 读文件</span>
+	<span class="hljs-keyword">int</span> buffer;
+	<span class="hljs-keyword">while</span> ((buffer = fgetc(normal_fp)) != EOF) {
+		<span class="hljs-comment">// 写入文件</span>
+		fputc(buffer ^ <span class="hljs-number">8</span>, encrypt_fp);
+	}
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"文件加密成功\n"</span>);
+
+	<span class="hljs-comment">// 关闭流</span>
+	fclose(encrypt_fp);
+	fclose(normal_fp);
+}
+</code></pre><h3 id="文件解密">文件解密 <a class="markdownIt-Anchor" href="#文件解密">#</a></h3><pre class="hljs"><code><span class="hljs-comment">/*文件解密*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">decryptFile</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-comment">// 加密文件路径</span>
+	<span class="hljs-keyword">char</span>* encrypt_path = <span class="hljs-string">"E:\\poto\\xj_encrypt.jpg"</span>;
+	<span class="hljs-comment">// 解密文件路径</span>
+	<span class="hljs-keyword">char</span>* decrypt_path = <span class="hljs-string">"E:\\poto\\xj_deencrypt.jpg"</span>;
+
+	<span class="hljs-comment">// 打开文件</span>
+	FILE* encrypt_fp = fopen(encrypt_path, <span class="hljs-string">"rb"</span>);
+	FILE* decrypt_fp = fopen(decrypt_path, <span class="hljs-string">"wb"</span>);
+
+	<span class="hljs-comment">// 读取文件</span>
+	<span class="hljs-keyword">int</span> buffer;
+	<span class="hljs-keyword">while</span> ((buffer = fgetc(encrypt_fp)) != EOF) {
+		<span class="hljs-comment">// 写文件</span>
+		fputc(buffer ^ <span class="hljs-number">8</span>, decrypt_fp);
+	}
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"文件解密成功\n"</span>);
+
+	<span class="hljs-comment">// 关闭流</span>
+	fclose(decrypt_fp);
+	fclose(encrypt_fp);
+}
+</code></pre><p>了解了文件加密的原理 ， 我们也可以推导出其他形式的加密 ， 如带密码的文件加密解密 ， 混合文件加密解密等等 。</p><p>不知不觉C语言基础系列已经写了快十篇了 ， 也快告一段落了 ， 有了这些基础知识 ， 我们就可以去分析分析jni.h头文件了 ， 下一个系列是jni开发系列 ， 我们学C语言就是为了能和java打交道 ， 那么下个系列我们就来学习C与java的桥梁 ， jni （Java Native Interface）技术 。</p></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../c/c-7-struct-pointer.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../c/c-9-enum.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item chapter-item-current"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"c/c-8-file-io.md",relative_root_path:"../",article_toc:'<ul class="markdownIt-TOC">\n<li>\n<ul>\n<li><a href="#%E6%96%87%E4%BB%B6io%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4%EF%BC%9A">文件IO操作步骤：</a></li>\n<li><a href="#%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6%E8%AF%BB%E5%86%99">二进制文件读写</a></li>\n<li><a href="#%E6%96%87%E4%BB%B6%E5%8A%A0%E5%AF%86">文件加密</a></li>\n<li><a href="#%E6%96%87%E4%BB%B6%E8%A7%A3%E5%AF%86">文件解密</a></li>\n</ul>\n</li>\n</ul>\n'}</script><script src="../assets/js/app.js"></script></body></html>

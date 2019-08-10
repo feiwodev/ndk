@@ -1,0 +1,125 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>联合体与枚举 - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/index.html" class="breadcrumb-item">C语言基础</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/c-9-enum.html" class="breadcrumb-item">联合体与枚举</a></div><h1 class="article-title">联合体与枚举</h1><div class="article"><p>在上篇中 ， 我们初步了解了C语言的IO操作 ， 编写IO操作的大致流程：</p><h3 id="文件io编写步骤：">文件IO编写步骤： <a class="markdownIt-Anchor" href="#文件io编写步骤：">#</a></h3><p>1.使用<code>fopen</code>函数 ， 得到文件指针<br>2.指定<code>fopen</code>的操作模式<code>r</code>,<code>w</code> （指定输入输出流）<br>3.创建缓冲区 ， 缓存读写数据（将流数据读入到内存或写入到磁盘）<br>3.关闭流 （关闭文件流）</p><p>接着介绍了文件的加密解密 ， 文件的存储都是以二进制保存在磁盘上的 ， 所以我们可以通过二进制运算来进行文件的加密解密操作 。在C语言的IO函数中 ， 没有直接获取文件大小的函数 ， 所以我们需要自己通过文件指针来获取文件的大小：</p><pre class="hljs"><code><span class="hljs-comment">/*获取文件大小*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">getFileSize</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-keyword">char</span>* path = <span class="hljs-string">"E:\\android_pdf\\研磨设计模式.pdf"</span>;
+	<span class="hljs-comment">// 打开文件</span>
+	FILE* fp = fopen(path, <span class="hljs-string">"r"</span>);
+	<span class="hljs-keyword">if</span> (fp == <span class="hljs-literal">NULL</span>) {
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"打开文件失败\n"</span>);
+		<span class="hljs-keyword">return</span>;
+	}
+
+	<span class="hljs-comment">// 重新定位文件指针 , SEEK_END文件末尾，0是文件指针的偏移量</span>
+	fseek(fp, <span class="hljs-number">0l</span>, SEEK_END);
+	<span class="hljs-comment">// 返回当前的文件指针，相对于文件开头的位移量</span>
+	<span class="hljs-keyword">long</span> fileSize = ftell(fp);
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"文件大小：%ld M\n"</span>, fileSize / <span class="hljs-number">1024</span> / <span class="hljs-number">1024</span>);
+
+}
+</code></pre><p>在jni.h中 ， 我们可以看到这样一段代码：</p><pre class="hljs"><code><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">union</span> jvalue {
+    jboolean    z;
+    jbyte       b;
+    jchar       c;
+    jshort      s;
+    jint        i;
+    jlong       j;
+    jfloat      f;
+    jdouble     d;
+    jobject     l;
+} jvalue;
+</code></pre><p>这样C语言中的联合体 ， 那么什么是联合体呢 ？</p><blockquote><p>联合体：不同类型的变量共用一段内存（相互覆盖） ， 始终只有一个成员存在 ， 最后赋值的那个 ， 有利于节省内存。<br>联合体大小：成员中最大的成员所占的字节数</p></blockquote><p>联合体 ， 将不同的类型联合起来 ， 组成一个新的聚合类型 ， 这个类型可以是联合体中的任意类型 。</p><pre class="hljs"><code><span class="hljs-comment">/*联合体*/</span>
+<span class="hljs-comment">/*
+	不同类型的变量共用一段内存（相互覆盖） ， 始终只有一个成员存在 ， 最后赋值的那个 ， 有利于节省内存
+	联合体大小：成员中最大的成员所占的字节数
+*/</span>
+<span class="hljs-keyword">union</span> mValue
+{
+	<span class="hljs-keyword">int</span>		i;
+	<span class="hljs-keyword">short</span>	s;
+	<span class="hljs-keyword">long</span>	l;
+	<span class="hljs-keyword">float</span>	f;
+
+};
+
+<span class="hljs-comment">/*联合体示例*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useUnion</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-keyword">union</span> mValue m;
+	m.f = <span class="hljs-number">23.4f</span>;
+	m.i = <span class="hljs-number">100</span>;  <span class="hljs-comment">// 最后一次赋值有效</span>
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"联合体：\n%f - %d\n"</span>, m.f, m.i);
+}
+</code></pre><p>在java中 ， 当我们需要一个类列举几个状态时 ， 因为状态是固定的 ， 所以我们通常的做法是使用枚举 ， 将状态列举出来 ， 在C语言也有枚举这个类型：</p><pre class="hljs"><code><span class="hljs-comment">/*
+	枚举（列举所有的情况）
+	限定值，保证取值的安全性
+*/</span>
+<span class="hljs-keyword">enum</span> NetStatus {
+	NET_SUCEESS,
+	NET_ERROR,
+	NOT_NET,
+	NET_FAILURE
+};
+</code></pre><p>下面我们来看一个示例 ， 来大致了解一下枚举的使用场景：</p><pre class="hljs"><code><span class="hljs-comment">/*枚举*/</span>
+<span class="hljs-comment">/*
+	枚举（列举所有的情况）
+	限定值，保证取值的安全性
+*/</span>
+<span class="hljs-keyword">enum</span> NetStatus {
+	NET_SUCEESS,
+	NET_ERROR,
+	NOT_NET,
+	NET_FAILURE
+};
+
+<span class="hljs-comment">/*模拟网络请求*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">requestHttp</span><span class="hljs-params">(<span class="hljs-keyword">char</span>* url, <span class="hljs-keyword">void</span>(*callBack)(<span class="hljs-keyword">enum</span> NetStatus status,<span class="hljs-keyword">char</span>* res))</span> </span>{
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"请求地址：%s\n"</span>, url);
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"请求网络....\n"</span>);
+	Sleep(<span class="hljs-number">2000</span>);
+	<span class="hljs-keyword">enum</span> NetStatus status = NET_SUCEESS;
+	<span class="hljs-keyword">char</span>* res = <span class="hljs-string">"如果 爱情是一场花火 ,一闪即逝的花火,我也要去追求\n"</span>;
+	callBack(status, res);
+}
+
+<span class="hljs-comment">/*网络回调函数*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">callBackHttp</span><span class="hljs-params">(<span class="hljs-keyword">enum</span> NetStatus status, <span class="hljs-keyword">char</span>* res)</span> </span>{
+	<span class="hljs-keyword">switch</span> (status)
+	{
+	<span class="hljs-keyword">case</span> NET_SUCEESS:
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"网络数据：\n%s"</span>, res);
+		<span class="hljs-keyword">break</span>;
+	<span class="hljs-keyword">case</span> NET_ERROR:
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"请求网络错误\n"</span>);
+		<span class="hljs-keyword">break</span>;
+	<span class="hljs-keyword">case</span> NOT_NET:
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"没有网络\n"</span>);
+		<span class="hljs-keyword">break</span>;
+	<span class="hljs-keyword">case</span> NET_FAILURE:
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"请求网络失败\n"</span>);
+		<span class="hljs-keyword">break</span>;
+	<span class="hljs-keyword">default</span>:
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"未知错误\n"</span>);
+		<span class="hljs-keyword">break</span>;
+	}
+}
+
+<span class="hljs-comment">/*枚举示例*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useEnum</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-keyword">enum</span> NetStatus status = NET_FAILURE;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"枚举中元素的值：%d\n"</span>, status);
+
+	<span class="hljs-keyword">char</span>* url = <span class="hljs-string">"http://www.zhuyongit.com"</span>;
+	requestHttp(url, callBackHttp);
+}
+</code></pre><p>我们模拟了网络请求的几种情况 ， 成功 ， 失败 ， 错误等等 ， 通过枚举将这些情况列举出来 ，然后通过网络回调函数传递到网络处理函数 ， 通过<code>switch</code>分支语句来进行不同网络状态的判断 。</p><p>在jni.h头文件中 ， 我们也可以见到类似的应用：</p><pre class="hljs"><code><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">enum</span> jobjectRefType {
+    JNIInvalidRefType = <span class="hljs-number">0</span>,
+    JNILocalRefType = <span class="hljs-number">1</span>,
+    JNIGlobalRefType = <span class="hljs-number">2</span>,
+    JNIWeakGlobalRefType = <span class="hljs-number">3</span>
+} jobjectRefType;
+</code></pre><p>使用枚举来标识对象引用的类型 ， 本地引用，全局引用，弱引用，等等 ，因为我们在使用jni调取java对象的时候 ， java虚拟机并没有将引用数加1 ， 所以我们需要用过加强引用类型 ， 来保证jni引用的java对象，不被虚拟机回收掉 。</p></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../c/c-8-file-io.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../c/c-10-jni.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item chapter-item-current"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"c/c-9-enum.md",relative_root_path:"../",article_toc:'<ul class="markdownIt-TOC">\n<li>\n<ul>\n<li><a href="#%E6%96%87%E4%BB%B6io%E7%BC%96%E5%86%99%E6%AD%A5%E9%AA%A4%EF%BC%9A">文件IO编写步骤：</a></li>\n</ul>\n</li>\n</ul>\n'}</script><script src="../assets/js/app.js"></script></body></html>

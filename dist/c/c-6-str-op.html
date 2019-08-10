@@ -1,0 +1,117 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>字符操作 - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/index.html" class="breadcrumb-item">C语言基础</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/c-6-str-op.html" class="breadcrumb-item">字符操作</a></div><h1 class="article-title">字符操作</h1><div class="article"><p>字符操作 ， 是我们写程序时 ， 最常用的一种操作 ， 例如：字符串截取 ， 字符串替换 ， 字符串转整数类型等等 ， 都是字符操作 ， 在java中<code>String</code>类就是二三十个方法 ， 还有<code>StringBuffer</code> , <code>StringBuilder</code>等辅助类 。 下面 ，我们就来看看C语言中字符处理的函数 。</p><h3 id="一-字符数组">一. 字符数组 <a class="markdownIt-Anchor" href="#一-字符数组">#</a></h3><pre class="hljs"><code><span class="hljs-comment">// 字符数组</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">charArray</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-comment">// 字符数组 ， 可以修改</span>
+	<span class="hljs-keyword">char</span> c[<span class="hljs-number">15</span>] = { <span class="hljs-string">'y'</span>,<span class="hljs-string">'e'</span>,<span class="hljs-string">'s'</span>,<span class="hljs-string">' '</span>,<span class="hljs-string">'m'</span>,<span class="hljs-string">'a'</span>,<span class="hljs-string">'n'</span> };
+	<span class="hljs-comment">// 字符数组可以直接作为字符串输出</span>
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"%s\n"</span>, c);
+
+	<span class="hljs-comment">// 修改</span>
+	c[<span class="hljs-number">0</span>] = <span class="hljs-string">'a'</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"修改字符：%s\n"</span>, c);
+
+}
+</code></pre><p>字符数组 ， 本身是一个数组 ， 但是也可以作为字符串格式化输出 ， 可以任意替换里面的字符 ， 和操作数组是一样的 。</p><h3 id="二-字符指针">二. 字符指针 <a class="markdownIt-Anchor" href="#二-字符指针">#</a></h3><pre class="hljs"><code><span class="hljs-comment">/*字符指针*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">charPointer</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-comment">// 内存连续排列 , 不可修改</span>
+	<span class="hljs-keyword">char</span>* s = <span class="hljs-string">"Never give up"</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"内存地址：%#x\n"</span>, s);
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"-------------------------------\n截取字符\n"</span>);
+	<span class="hljs-comment">// 截取字符</span>
+	s += <span class="hljs-number">6</span>;
+	<span class="hljs-keyword">while</span> (*s)
+	{
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"%c"</span>, *s);
+		s++;
+	}
+}
+</code></pre><p>字符指针与字符数组 ， 最大的区别是一个定义了就不可以修改 ， 一个可以任意修改里面的字符 ， 就和<code>String</code>和<code>StringBuilder</code>一样 ， String定义了就无法增加或修改里面的内容 ， 一个是可以增加和修改里面的内容 。</p><p>下面就列举几个常用的操作：</p><blockquote><p>字符函数查询网站： <a href="http://www.kuqin.com/clib/string/strpbrk.html" target="_blank" rel="noopener">字符串函数</a></p></blockquote><h3 id="拼接字符串">拼接字符串 <a class="markdownIt-Anchor" href="#拼接字符串">#</a></h3><pre class="hljs"><code><span class="hljs-comment">/*拼接函数*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">spliceString</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-comment">// 合并后存储字符的容器</span>
+	<span class="hljs-keyword">char</span> dest[<span class="hljs-number">40</span>] = {<span class="hljs-string">'h'</span>,<span class="hljs-string">'e'</span>,<span class="hljs-string">'h'</span>,<span class="hljs-string">'e'</span>,<span class="hljs-string">' '</span>};
+
+	<span class="hljs-keyword">char</span>* c1 = <span class="hljs-string">"Never give up "</span>;
+
+	<span class="hljs-keyword">char</span>* c2 = <span class="hljs-string">"I blive you ! "</span>;
+
+	<span class="hljs-comment">// 会清除字符数组原有的数据</span>
+	<span class="hljs-comment">//strcpy(dest, c1);</span>
+	<span class="hljs-built_in">strcat</span>(dest, c1);
+	<span class="hljs-built_in">strcat</span>(dest, c2);
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n拼接字符串：\n%s\n"</span>, dest);
+
+}
+</code></pre><h3 id="查找单个字符">查找单个字符 <a class="markdownIt-Anchor" href="#查找单个字符">#</a></h3><pre class="hljs"><code>
+<span class="hljs-comment">/*查找单个字符*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">searchChar</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-keyword">char</span>* str = <span class="hljs-string">"I wanna dont kiss you"</span>;
+	<span class="hljs-keyword">char</span>* p = <span class="hljs-built_in">strchr</span>(str, <span class="hljs-string">'d'</span>);
+	
+	<span class="hljs-keyword">if</span> (p) {
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"索引位置：%d\n"</span>, p - str);
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"打印: "</span>);
+		str += p - str;
+		<span class="hljs-keyword">while</span> (*str)
+		{
+			<span class="hljs-built_in">printf</span>(<span class="hljs-string">"%c"</span>,*str);
+			str++;
+		}
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n"</span>);
+	}
+	<span class="hljs-keyword">else</span> {
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"没有找到\n"</span>);
+	}
+}
+</code></pre><h3 id="查找字符串">查找字符串 <a class="markdownIt-Anchor" href="#查找字符串">#</a></h3><pre class="hljs"><code>
+<span class="hljs-comment">/*查找字符串*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">sreachChars</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-keyword">char</span>* str = <span class="hljs-string">"落花有意流水无情"</span>;
+	<span class="hljs-keyword">char</span>* handle = <span class="hljs-string">"流"</span>;
+
+	<span class="hljs-keyword">char</span>* p = <span class="hljs-built_in">strstr</span>(str, handle);
+
+	<span class="hljs-keyword">if</span> (*p) {
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"索引位置：%d\n"</span>, p - str);
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"打印: "</span>);
+		str += p - str;
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"%s ---- %s\n"</span>, str,p);
+	}
+	<span class="hljs-keyword">else</span> {
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"没找到\n"</span>);
+	}
+}
+</code></pre><h3 id="字符转换">字符转换 <a class="markdownIt-Anchor" href="#字符转换">#</a></h3><pre class="hljs"><code><span class="hljs-comment">/*字符转换int*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">strToInt</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-keyword">char</span>* p = <span class="hljs-string">"123"</span>;
+	<span class="hljs-keyword">int</span> toInt = atoi(p);
+	<span class="hljs-keyword">int</span> res = toInt + <span class="hljs-number">123</span>;
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"字符转换int数值: %d\n"</span>, res);
+}
+</code></pre><h3 id="字符转换函数定义：">字符转换函数定义： <a class="markdownIt-Anchor" href="#字符转换函数定义：">#</a></h3><pre class="hljs"><code>/-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// Narrow String to Number Conversions</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+_Check_return_                    _ACRTIMP <span class="hljs-keyword">double</span>    __<span class="hljs-function">cdecl <span class="hljs-title">atof</span>   <span class="hljs-params">(_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String)</span></span>;
+_Check_return_ _CRT_JIT_INTRINSIC _ACRTIMP <span class="hljs-keyword">int</span>       __<span class="hljs-function">cdecl <span class="hljs-title">atoi</span>   <span class="hljs-params">(_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String)</span></span>;
+_Check_return_                    _ACRTIMP <span class="hljs-keyword">long</span>      __<span class="hljs-function">cdecl <span class="hljs-title">atol</span>   <span class="hljs-params">(_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String)</span></span>;
+_Check_return_                    _ACRTIMP <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> __<span class="hljs-function">cdecl <span class="hljs-title">atoll</span>  <span class="hljs-params">(_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String)</span></span>;
+_Check_return_                    _ACRTIMP __int64   __cdecl _atoi64(_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String);
+
+_Check_return_ _ACRTIMP <span class="hljs-keyword">double</span>    __cdecl _atof_l  (_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String, _In_opt_ <span class="hljs-keyword">_locale_t</span> _Locale);
+_Check_return_ _ACRTIMP <span class="hljs-keyword">int</span>       __cdecl _atoi_l  (_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String, _In_opt_ <span class="hljs-keyword">_locale_t</span> _Locale);
+_Check_return_ _ACRTIMP <span class="hljs-keyword">long</span>      __cdecl _atol_l  (_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String, _In_opt_ <span class="hljs-keyword">_locale_t</span> _Locale);
+_Check_return_ _ACRTIMP <span class="hljs-keyword">long</span> <span class="hljs-keyword">long</span> __cdecl _atoll_l (_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String, _In_opt_ <span class="hljs-keyword">_locale_t</span> _Locale);
+_Check_return_ _ACRTIMP __int64   __cdecl _atoi64_l(_In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String, _In_opt_ <span class="hljs-keyword">_locale_t</span> _Locale);
+
+_Check_return_ _ACRTIMP <span class="hljs-keyword">int</span> __cdecl _atoflt (_Out_ _CRT_FLOAT*  _Result, _In_z_ <span class="hljs-keyword">char</span> <span class="hljs-keyword">const</span>* _String);
+_Check_return_ _ACRTIMP <span class="hljs-keyword">int</span> __cdecl _atodbl (_Out_ _CRT_DOUBLE* _Result, _In_z_ <span class="hljs-keyword">char</span>*       _String);
+_
+</code></pre><p>C语言中的字符操作函数也比较多 ， 这里列举几个常用的 ， 其他的可以去<a href="http://www.kuqin.com/clib/string/strpbrk.html" target="_blank" rel="noopener">字符串函数</a>网址查询 ， 都有例子 。</p></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../c/c-5-dynamic-m.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../c/c-7-struct-pointer.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item chapter-item-current"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"c/c-6-str-op.md",relative_root_path:"../",article_toc:'<ul class="markdownIt-TOC">\n<li>\n<ul>\n<li><a href="#%E4%B8%80-%E5%AD%97%E7%AC%A6%E6%95%B0%E7%BB%84">一. 字符数组</a></li>\n<li><a href="#%E4%BA%8C-%E5%AD%97%E7%AC%A6%E6%8C%87%E9%92%88">二. 字符指针</a></li>\n<li><a href="#%E6%8B%BC%E6%8E%A5%E5%AD%97%E7%AC%A6%E4%B8%B2">拼接字符串</a></li>\n<li><a href="#%E6%9F%A5%E6%89%BE%E5%8D%95%E4%B8%AA%E5%AD%97%E7%AC%A6">查找单个字符</a></li>\n<li><a href="#%E6%9F%A5%E6%89%BE%E5%AD%97%E7%AC%A6%E4%B8%B2">查找字符串</a></li>\n<li><a href="#%E5%AD%97%E7%AC%A6%E8%BD%AC%E6%8D%A2">字符转换</a></li>\n<li><a href="#%E5%AD%97%E7%AC%A6%E8%BD%AC%E6%8D%A2%E5%87%BD%E6%95%B0%E5%AE%9A%E4%B9%89%EF%BC%9A">字符转换函数定义：</a></li>\n</ul>\n</li>\n</ul>\n'}</script><script src="../assets/js/app.js"></script></body></html>

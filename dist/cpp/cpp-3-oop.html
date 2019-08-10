@@ -1,0 +1,239 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>## 前言 - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../cpp/index.html" class="breadcrumb-item">C++基础</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../cpp/cpp-3-oop.html" class="breadcrumb-item">new对象，继承，友元函数，函数的可变参数</a></div><h1 class="article-title">## 前言</h1><div class="article"><p>C<ins>是一门面向对象的编程语言 ， 创建用以创建对象 ， 则不在话下 ， 我们知道，Java在创建对象的时候需要使用关键字<code>new</code> (忽略反射)， 而在C</ins>中创建对象可以使用<code>new</code>也可以不使用 ， 那么使用<code>new</code>和不使用 ， 有什么区别呢 ？ 答案是：对象存储的内存空间不一样 ， 不使用<code>new</code>关键字创建的对象，对象数据存储在栈内存空间里面 ， 使用<code>new</code>关键字 ， 则会将对象数据存储在堆内存空间 。</p><p>我们知道 ， 栈内存空间是固定有限的 ， 所有对象数据很大很多的话 ， 就需要存储在堆内存空间 ， 不然可能会造成栈溢出 。</p><h3 id="new-一个对象">new 一个对象 <a class="markdownIt-Anchor" href="#new-一个对象">#</a></h3><p>使用<code>new</code>关键字创建对象 ， 写法和Java一样 ， <code>Music* m = new Music(&quot;决口不提！爱你&quot;,&quot;郑中基&quot;);</code> ， 就连对象存储的内存空间都是一样的 ， Java对象与C++ new出来的对象 ， 都是存储在堆内存空间 。有点区别的是 ， 使用new创建的C++对象 ， 需要使用<code>delete</code>来回收对象开辟的内存空间 ， 如果使用<code>free</code>函数回收开辟的内存空间，则对象执行完不会执行析构函数。</p><pre class="hljs"><code><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Songstr</span> {</span>
+<span class="hljs-keyword">private</span>:
+	<span class="hljs-keyword">char</span>* name;
+
+<span class="hljs-keyword">public</span>:
+	Songstr(<span class="hljs-keyword">char</span>* name) {
+		<span class="hljs-keyword">this</span>-&gt;name = name;
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"Songstr构造函数"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">char</span>* <span class="hljs-title">getName</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>-&gt;name;
+	}
+
+	~Songstr()
+	{
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"Songstr析构函数"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+};
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Music</span> {</span>
+<span class="hljs-keyword">private</span>:
+	<span class="hljs-keyword">char</span>* musicName;
+	<span class="hljs-comment">// 如果类中存在对象字段，而这个对象需要传入构造函数参数，则需要在当前类构造函数)后面：进行赋值初始化</span>
+	<span class="hljs-comment">// Music(char* musicName,char* songstrName) : s(songstrName)</span>
+	Songstr s;
+
+<span class="hljs-keyword">public</span>:
+	Music(<span class="hljs-keyword">char</span>* musicName,<span class="hljs-keyword">char</span>* songstrName) : s(songstrName) {
+		<span class="hljs-keyword">this</span>-&gt;musicName = musicName;
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"Music构造函数"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">printInfo</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"歌曲： "</span> &lt;&lt; <span class="hljs-keyword">this</span>-&gt;musicName &lt;&lt; <span class="hljs-built_in">endl</span>;
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"歌手： "</span> &lt;&lt; <span class="hljs-keyword">this</span>-&gt;s.getName() &lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+
+	~Music()
+	{
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"Music析构函数"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+};
+
+
+<span class="hljs-comment">/*使用new关键字创建对象*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useNewKeyCreateObject</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-comment">// 使用new关键创建对象 ， 则会在堆内存中创建一个空间来存储对象数据</span>
+	<span class="hljs-comment">// 需要使用delete关键字来回收堆内存中的内存空间 ， 也可以使用free</span>
+	<span class="hljs-comment">// 使用free则不会出发析构函数</span>
+	Music* m = <span class="hljs-keyword">new</span> Music(<span class="hljs-string">"决口不提！爱你"</span>,<span class="hljs-string">"郑中基"</span>);
+	m-&gt;printInfo();
+
+	<span class="hljs-comment">// 回收为对象开辟的空间</span>
+	<span class="hljs-keyword">delete</span> m;
+
+	<span class="hljs-comment">//// new一个数组</span>
+	<span class="hljs-comment">//int* arr = new int[];</span>
+
+	<span class="hljs-comment">//// 回收数组空间</span>
+	<span class="hljs-comment">//delete[] arr;</span>
+}
+</code></pre><h3 id="继承">继承 <a class="markdownIt-Anchor" href="#继承">#</a></h3><p>C<ins>的基础方式和Java不同， C</ins>可以多继承， 一个类可以继承多个类 ， 而对于父类构造函数的赋值也不一样 。C++的基础符号是 <code>:</code>以冒号作为继承符号<code>class Rose : public Flower</code> ， 在继承的时候最好明确继承权限(可不写继承权限，默认public)</p><blockquote><p>继承权限列表：</p></blockquote><table><thead><tr><th style="text-align:center">基类</th><th style="text-align:center">继承权限</th><th style="text-align:center">子类</th></tr></thead><tbody><tr><td style="text-align:center">public</td><td style="text-align:center">public继承</td><td style="text-align:center">public</td></tr><tr><td style="text-align:center">public</td><td style="text-align:center">protected继承</td><td style="text-align:center">protected</td></tr><tr><td style="text-align:center">public</td><td style="text-align:center">private继承</td><td style="text-align:center">private</td></tr><tr><td style="text-align:center">protected</td><td style="text-align:center">public继承</td><td style="text-align:center">protected</td></tr><tr><td style="text-align:center">protected</td><td style="text-align:center">protected继承</td><td style="text-align:center">protected</td></tr><tr><td style="text-align:center">protected</td><td style="text-align:center">private继承</td><td style="text-align:center">private</td></tr><tr><td style="text-align:center">private</td><td style="text-align:center">public继承</td><td style="text-align:center">子类无权访问</td></tr><tr><td style="text-align:center">private</td><td style="text-align:center">protected继承</td><td style="text-align:center">子类无权访问</td></tr></tbody></table><pre class="hljs"><code><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Flower</span> {</span>
+
+<span class="hljs-keyword">protected</span>:
+	<span class="hljs-keyword">int</span> id;
+	<span class="hljs-keyword">char</span>* name;
+
+<span class="hljs-keyword">public</span>:
+	Flower(<span class="hljs-keyword">int</span> id, <span class="hljs-keyword">char</span>* name) {
+		<span class="hljs-keyword">this</span>-&gt;id = id;
+		<span class="hljs-keyword">this</span>-&gt;name = name;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">printInfo</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"id = "</span> &lt;&lt; <span class="hljs-keyword">this</span>-&gt;id &lt;&lt; <span class="hljs-string">"    name = "</span> &lt;&lt; <span class="hljs-keyword">this</span>-&gt;name &lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+};
+
+
+<span class="hljs-comment">/*
+	CPP 可以进行多继承 ， 继承父类的的构造函数按照如下编写 ， 也可直接传入默认值
+*/</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Rose</span> :</span> <span class="hljs-keyword">public</span> Flower {
+
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-comment">/*子类继承父类，父类有构造函数，需要子类传入，则在构造函数后面使用:父类名(传入参数)*/</span>
+	Rose(<span class="hljs-keyword">int</span> id, <span class="hljs-keyword">char</span>*name) : Flower(id, name) {
+
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">printInfo</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"id = "</span> &lt;&lt; <span class="hljs-keyword">this</span>-&gt;id &lt;&lt; <span class="hljs-string">"    name = "</span> &lt;&lt; name &lt;&lt; <span class="hljs-string">" -- "</span>&lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+};
+</code></pre><p>因为C++是多继承的特性 ， 所有就会造成继承的二义性，所以我们需要使用虚继承来解决同名成员不明确的问题 。</p><pre class="hljs"><code><span class="hljs-comment">//继承的二义性</span>
+<span class="hljs-comment">//虚继承，不同路径继承来的同名成员只有一份拷贝，解决不明确的问题</span>
+<span class="hljs-comment">/*
+class A{
+public:
+	char* name;
+};
+
+class A1 : virtual public A{
+	
+};
+
+class A2 : virtual public A{
+
+};
+
+class B : public A1, public A2{
+
+};
+
+void main(){
+	B b;	
+	b.name = "zeno";
+	//指定父类显示调用
+	//b.A1::name = "zeno";
+	//b.A2::name = "zeno";
+	system("pause");
+}
+</span></code></pre><p>Tips：虚继承 ， 在继承父类的时候使用<code>virtual</code>关键字修饰 ， 这个关键字， 后续还会遇到很多次</p><h3 id="友元函数">友元函数 <a class="markdownIt-Anchor" href="#友元函数">#</a></h3><p>如果在Java中，子类想访问父类的私有成员，除非使用反射机制，不然那是不可能的 。但在C++中 ，想要访问父类的私有成员 ， 那就轻松很多了 。我们只需要在父类中，声明子类是父类的友元类 ， 那么就可以在之类访问修改父类的私有成员了。</p><pre class="hljs"><code><span class="hljs-comment">/*
+	friend function demo
+
+	// 友元函数可以访问一个类的任何字段和函数
+*/</span>
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FriendFunction</span> {</span>
+
+	<span class="hljs-comment">// 创建一个友元函数 ， 用来访问私有字段 ， 需要在外部实现函数</span>
+	<span class="hljs-function"><span class="hljs-keyword">friend</span> <span class="hljs-keyword">void</span> <span class="hljs-title">accessFriendFunctionFeild</span><span class="hljs-params">(FriendFunction *p, <span class="hljs-keyword">int</span> id, <span class="hljs-keyword">char</span>* name)</span></span>;
+
+	<span class="hljs-comment">// 友元类 ， 友元类可以访问此类任意字段和函数</span>
+	<span class="hljs-keyword">friend</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FriendClass</span>;</span>
+
+<span class="hljs-comment">// 类私有字段 , 私有字段，常规访问需要创建public get的访问函数 , 不能进行直接访问</span>
+<span class="hljs-keyword">private</span>:
+	<span class="hljs-keyword">int</span> id;
+	<span class="hljs-keyword">char</span>* name;
+
+
+<span class="hljs-keyword">public</span>:
+	FriendFunction(<span class="hljs-keyword">int</span> id, <span class="hljs-keyword">char</span>* name) {
+		<span class="hljs-keyword">this</span>-&gt;id = id;
+		<span class="hljs-keyword">this</span>-&gt;name = name;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">printfInfo</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"id = "</span> &lt;&lt; <span class="hljs-keyword">this</span>-&gt;id &lt;&lt; <span class="hljs-string">"   name = "</span> &lt;&lt; <span class="hljs-keyword">this</span>-&gt;name &lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+
+};
+
+<span class="hljs-comment">/*作为类的友元类，可以修改类中任意字段与函数*/</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FriendClass</span> {</span>
+
+<span class="hljs-keyword">private</span>:
+	FriendFunction *f;
+
+<span class="hljs-keyword">public</span>:
+	FriendClass(FriendFunction *f) {
+		<span class="hljs-keyword">this</span>-&gt;f = f;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">accessFriendFeild</span><span class="hljs-params">()</span> </span>{
+		f-&gt;id = <span class="hljs-number">100</span>;
+		f-&gt;name = <span class="hljs-string">"友元类修改"</span>;
+	}
+
+};
+</code></pre><p>不管是友元类还是友元函数 ， 只要在类中声明 ， 那么此类相当于他们就没有秘密了，友元类和友元函数，可以任意访问此类的私有成员。需要注意的是，友元函数需要在类的外部实现 。</p><blockquote><p>使用友元函数，友元类</p></blockquote><pre class="hljs"><code><span class="hljs-comment">/*友元函数实现 用来访问私有字段*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">accessFriendFunctionFeild</span><span class="hljs-params">(FriendFunction *p, <span class="hljs-keyword">int</span> id, <span class="hljs-keyword">char</span>* name)</span> </span>{
+	p-&gt;id = id;
+	p-&gt;name = name;
+}
+
+<span class="hljs-comment">/*友元函数使用*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useFriendFunction</span><span class="hljs-params">()</span> </span>{
+
+	FriendFunction *f = <span class="hljs-keyword">new</span> FriendFunction(<span class="hljs-number">1</span>, <span class="hljs-string">"找不到你的方向"</span>);
+	f-&gt;printfInfo();
+
+	accessFriendFunctionFeild(f, <span class="hljs-number">3</span>, <span class="hljs-string">"我是你的眼"</span>);
+	f-&gt;printfInfo();
+
+	<span class="hljs-comment">/*java中的Class对象，可以访问任意对象的任意字段，本质是Class类每个类的友元类*/</span>
+	<span class="hljs-function">FriendClass <span class="hljs-title">fc</span><span class="hljs-params">(f)</span></span>;
+	fc.accessFriendFeild();
+	f-&gt;printfInfo();
+}
+</code></pre><h3 id="函数可变参数">函数可变参数 <a class="markdownIt-Anchor" href="#函数可变参数">#</a></h3><p>函数的可变参数，在Android很常见，比如我们经常使用的<code>AsyncTask</code> 。在C++也有函数的可变参数 ，常见于Android LOG函数。</p><pre class="hljs"><code><span class="hljs-comment">/*
+	CPP 可变参数
+*/</span>
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdarg.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">VariableParameter</span>
+{</span>
+<span class="hljs-keyword">public</span>:
+
+	<span class="hljs-comment">/*可变参数*/</span>
+	<span class="hljs-keyword">void</span> VariableParameter::variableParams(<span class="hljs-keyword">int</span> i, ...)
+	{
+		<span class="hljs-comment">// 可变参数列表</span>
+		va_list ap_list;
+		<span class="hljs-comment">// 从...之前的第一个参数开始，后面就是可变参数</span>
+		va_start(ap_list, i);
+		<span class="hljs-comment">// 得到可变参数 ， 参数①可变参数列表  ， 参数②参数类型。</span>
+		<span class="hljs-keyword">int</span> age = va_arg(ap_list, <span class="hljs-keyword">int</span>);
+		<span class="hljs-keyword">double</span> weight = va_arg(ap_list, <span class="hljs-keyword">double</span>);
+		<span class="hljs-keyword">char</span>* registry = va_arg(ap_list, <span class="hljs-keyword">char</span>*);
+		va_end(ap_list);
+
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"编号: "</span> &lt;&lt; i &lt;&lt; <span class="hljs-string">" 年龄： "</span> &lt;&lt; age &lt;&lt; <span class="hljs-string">" 体重： "</span> &lt;&lt; weight &lt;&lt; <span class="hljs-string">"  籍贯： "</span> &lt;&lt; registry &lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+
+};
+</code></pre><blockquote><p>使用可变参数</p></blockquote><pre class="hljs"><code><span class="hljs-comment">/*函数可变参数*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useVariableParameter</span><span class="hljs-params">()</span> </span>{
+	VariableParameter v;
+	v.variableParams(<span class="hljs-number">1</span>, <span class="hljs-number">20</span>,<span class="hljs-number">100.2</span>,<span class="hljs-string">"湖南"</span>);
+}
+</code></pre><p>Tips：C++的可变参数，必须含有一个固定参数，可变参数类型不固定，可以是任意数据类型，通过<code>va_arg()</code>函数指定数据类型 。</p><h3 id="结语">结语 <a class="markdownIt-Anchor" href="#结语">#</a></h3><p>C<ins>与Java有很多相似的地方，学习起来 ， 应该没那么晦涩难懂， 只是有些语法上的差别，和一些特殊的用法 。作为Android程序员学C</ins>，不一定要去成天写C++，但至少要能看懂，要能修改 ， 我们的主要目的就是用成熟的C/C<ins>库 ， 编写小模块的C/C</ins>程序 。</p><p>###源码<br><a href="https://github.com/zhuyongit/Hello_CPP" target="_blank" rel="noopener">Hello_CPP</a></p></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../cpp/cpp-2-constructor-copy_func.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../cpp/cpp-4-template-exception.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item chapter-item-current"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"cpp/cpp-3-oop.md",relative_root_path:"../",article_toc:'<ul class="markdownIt-TOC">\n<li>\n<ul>\n<li><a href="#new-%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1">new 一个对象</a></li>\n<li><a href="#%E7%BB%A7%E6%89%BF">继承</a></li>\n<li><a href="#%E5%8F%8B%E5%85%83%E5%87%BD%E6%95%B0">友元函数</a></li>\n<li><a href="#%E5%87%BD%E6%95%B0%E5%8F%AF%E5%8F%98%E5%8F%82%E6%95%B0">函数可变参数</a></li>\n<li><a href="#%E7%BB%93%E8%AF%AD">结语</a></li>\n</ul>\n</li>\n</ul>\n'}</script><script src="../assets/js/app.js"></script></body></html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>结构体与指针 - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/index.html" class="breadcrumb-item">C语言基础</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/c-7-struct-pointer.html" class="breadcrumb-item">结构体与指针</a></div><h1 class="article-title">结构体与指针</h1><div class="article"><p>如果说类是java中结构化数据类型的核心 ， 那么结构体就是C语言中结构化数据类型的核心 。在java中我们常有这样的写法：</p><pre class="hljs"><code><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Product</span> </span>{
+  <span class="hljs-keyword">private</span> String name ;
+  <span class="hljs-keyword">private</span> String desc ;
+  
+  <span class="hljs-comment">// get set ...</span>
+}
+</code></pre><p>这种常见的javabean的写法 ， 在C语言中可以用结构体来表示 ， 关键字<code>struct</code>：</p><pre class="hljs"><code><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Product</span> {</span>
+	<span class="hljs-keyword">char</span>* productName;
+	<span class="hljs-keyword">char</span>* productDesc;
+};
+</code></pre><p>在学习C语言的结构体的时候 ， 我们可以类比成java中的类 ， 只是这个类比较特殊，结构体中只有声明 ， 函数没有实现 ， 属性也不能初始化 ， 一般定义在头文件中 。就好比声明了一个抽象类 ， 里面什么动作也不做 ， 属性只是声明一样 ， 都需要继承或是外部去赋值 。</p><h3 id="结构体的简单使用：">结构体的简单使用： <a class="markdownIt-Anchor" href="#结构体的简单使用：">#</a></h3><pre class="hljs"><code><span class="hljs-comment">// 定义一个结构体</span>
+<span class="hljs-comment">// 一个结构体相当于一个java中的类 ， 结构体中只有声明 ， 函数没有实现 ， 属性也不能初始化 ， 一般定义在头文件中</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span>
+{</span>
+	<span class="hljs-keyword">char</span>* name;
+	<span class="hljs-keyword">int</span> age;
+};
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">News</span> {</span>
+	<span class="hljs-comment">// 使用字符数组 ， 在赋值的时候和字符指针略有不同</span>
+	<span class="hljs-keyword">char</span> title[<span class="hljs-number">128</span>];
+	<span class="hljs-keyword">char</span>* content;
+};
+
+
+<span class="hljs-comment">/*简单使用结构体*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">makeSimpleStruct</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-comment">// 使用结构体 ， 使用字面量的形式创建一个结构体</span>
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span> <span class="hljs-title">person</span> = {</span> <span class="hljs-string">"zeno"</span>,<span class="hljs-number">21</span> };
+	<span class="hljs-comment">// 打印</span>
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"输出：姓名 - %s ; 年龄 - %d\n"</span>, person.name, person.age);
+
+
+	<span class="hljs-comment">//另一种创建结构体的方式</span>
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span> <span class="hljs-title">person2</span>;</span>
+	person2.name = <span class="hljs-string">"非我"</span>;
+	person2.age = <span class="hljs-number">23</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n输出：姓名 - %s ; 年龄 - %d\n"</span>, person2.name, person2.age);
+
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">News</span> <span class="hljs-title">news</span>;</span>
+	<span class="hljs-comment">//news.title 是字符数组 ， 不能直接 news.title = "xxx" ， 需要使用strcpy()函数</span>
+	<span class="hljs-built_in">strcpy</span>(news.title, <span class="hljs-string">"我是新闻标题"</span>);
+	news.content = <span class="hljs-string">" 我是新闻正文"</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n输出：\n标题 \n %s \n正文：\n  %s\n"</span>, news.title, news.content);
+}
+</code></pre><blockquote><p>友情提示：<br>1.结构体的两种创建方式，①通过字面量的方式创建 。② 通过定义结构体变量然后给成员赋值 ， 类似对象给成员属性赋值。<br>2.字符数组的赋值，不能直接<code>=&quot;xxx&quot;</code>，而需要使用<code>strcpy()</code>函数 。</p></blockquote><h3 id="结构体的多种写法：">结构体的多种写法： <a class="markdownIt-Anchor" href="#结构体的多种写法：">#</a></h3><pre class="hljs"><code><span class="hljs-comment">/*结构体的几种写法*/</span>
+<span class="hljs-comment">// 在声明结构体的时候 ， 定义结构体变量和指针</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Product</span> {</span>
+	<span class="hljs-keyword">char</span>* productName;
+	<span class="hljs-keyword">char</span>* productDesc;
+}product , *productP;
+
+<span class="hljs-comment">// 匿名结构 , 没有结构体名称 ， 可以定义多个结构体变量， 可作为单例使用</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> {</span>
+	<span class="hljs-keyword">char</span> * name;
+	<span class="hljs-keyword">int</span> age;
+}person;
+
+<span class="hljs-comment">/*结构体多种写法的使用*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">defineMultiStruct</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-comment">// 在声明结构体的时候定义结构变量 ， 操作方便 ， 不用再定义一遍</span>
+	product.productName = <span class="hljs-string">"全新X系列宝马 ， X5"</span>;
+	product.productDesc = <span class="hljs-string">"无刮痕 ， 全新X系列宝马 ， 享受驾驶愉悦 ， 就开宝马轿车"</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n\n\n"</span>);
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"产品信息：\n产品名称：%s\n产品描述：%s\n"</span>,product.productName,product.productDesc);
+
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n\n使用结构体指针 , 使用结构体指针不用.符号 ， 使用-&gt;符号来操作结构体成员 , -&gt;操作符是(*p).的简写 \n\n"</span>);
+	productP = &amp;product;
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"产品信息：\n产品名称：%s\n产品描述：%s\n"</span>, productP-&gt;productName, productP-&gt;productDesc);
+
+	<span class="hljs-comment">/*使用匿名结构体 ， 始终只有一个结构体实例 , 可以作为单例来使用*/</span>
+	person.name = <span class="hljs-string">"逝我"</span>;
+	person.age = <span class="hljs-number">23</span>;
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n"</span>);
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"用户信息：\n用户姓名：%s\n用户年龄：%d\n"</span>, person.name, person.age);
+}
+</code></pre><blockquote><p>友情提示：<br>1.结构体指针的操作 ， 结构体指针使用的是<code>-&gt;</code>操作符，相当于<code>(*p).</code>。<br>2.在结构体<code>}xxx</code>声明的变量 ， 相当于 <code>struct structName xxx</code> , 可以极大的简化书写。</p></blockquote><h3 id="结构嵌套：">结构嵌套： <a class="markdownIt-Anchor" href="#结构嵌套：">#</a></h3><pre class="hljs"><code><span class="hljs-comment">/*结构体嵌套 ， 两种嵌套方式*/</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Product</span> {</span>
+	<span class="hljs-keyword">char</span>* productName;
+	<span class="hljs-keyword">char</span>* productDesc;
+};
+
+<span class="hljs-comment">// one</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">GoodsBean</span> {</span>
+	<span class="hljs-keyword">int</span> total;
+	<span class="hljs-keyword">int</span> status;
+
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Goods</span> {</span>
+		<span class="hljs-keyword">char</span>* goodsName;
+		<span class="hljs-keyword">char</span>* goodsDesc;
+	};
+};
+
+<span class="hljs-comment">// two</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ProductBean</span>
+{</span>
+	<span class="hljs-keyword">int</span> total;
+	<span class="hljs-keyword">int</span> status;
+
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Product</span> <span class="hljs-title">product</span>;</span>
+};
+
+<span class="hljs-comment">/*结构嵌套示例*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">nestingStruct</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-comment">// one</span>
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n\n\n结构嵌套示例\n\n"</span>);
+	<span class="hljs-comment">// 使用字面量的形式赋值</span>
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">GoodsBean</span> <span class="hljs-title">goodsBean</span> = {</span> <span class="hljs-number">10</span>,<span class="hljs-number">0</span>,{ <span class="hljs-string">"全新Iphone6s"</span>,<span class="hljs-string">"金色全新Iphone6s ， 能与Android手机媲美的Iphone6s"</span> } };
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"商品总数：%d\n商品状态：%d\n商品名称：%s\n商品描述：%s\n"</span>, goodsBean.total, goodsBean.status, goodsBean.goodsName, goodsBean.goodsDesc);
+
+	<span class="hljs-comment">// two</span>
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n"</span>);
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ProductBean</span> <span class="hljs-title">productBean</span>;</span>
+	productBean.total = <span class="hljs-number">100</span>;
+	productBean.status = <span class="hljs-number">0</span>;
+	productBean.product.productName = <span class="hljs-string">"金色经典 ， 小米5 ， 你值得拥有"</span>;
+	productBean.product.productDesc = <span class="hljs-string">"全新金色小米5 ， 刚买没几个月"</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"商品总数：%d\n商品状态：%d\n商品名称：%s\n商品描述：%s\n"</span>, productBean.total, productBean.status, productBean.product.productName, productBean.product.productDesc);
+}
+</code></pre><blockquote><p>友情提示：<br>在结构体嵌套的时候 ， 使用字面量创建结构体 ， 嵌套的结构体也是使用<code>{}</code>来创建，so , 可能会出现<code>{{},{}}</code>这样的结构。</p></blockquote><h3 id="结构体数组：">结构体数组： <a class="markdownIt-Anchor" href="#结构体数组：">#</a></h3><pre class="hljs"><code><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span>
+{</span>
+	<span class="hljs-keyword">char</span>* name;
+	<span class="hljs-keyword">int</span> age;
+};
+
+<span class="hljs-comment">/*结构体数组*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useStructArray</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n\n\n结构体数组示例\n\n"</span>);
+	<span class="hljs-comment">// 结构体数组</span>
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span> <span class="hljs-title">persons</span>[] = {</span> {<span class="hljs-string">"zeno"</span>,<span class="hljs-number">20</span>},{<span class="hljs-string">"非我"</span>,<span class="hljs-number">24</span>}, {<span class="hljs-string">"逝我"</span>,<span class="hljs-number">23</span>} };
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span> *<span class="hljs-title">p</span> = &amp;<span class="hljs-title">persons</span>;</span>
+	<span class="hljs-keyword">int</span> personArrSize = <span class="hljs-keyword">sizeof</span>(persons) / <span class="hljs-keyword">sizeof</span>(struct Person);
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"遍历结构体数组：\n"</span>);
+	<span class="hljs-comment">// 遍历</span>
+	<span class="hljs-keyword">for</span> (; p &lt; persons + personArrSize; p++)
+	{
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"姓名：%s \t 年龄：%d\n"</span>, p-&gt;name, p-&gt;age);
+	}
+}
+</code></pre><blockquote><p>友情提示：<br>结构体数组和一般数据操作差不多 ， 使用<code>{}</code>创建结构体，通过数组指针运算来遍历结构体数组 。</p></blockquote><h3 id="结构体动态内存分配">结构体动态内存分配 <a class="markdownIt-Anchor" href="#结构体动态内存分配">#</a></h3><pre class="hljs"><code><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span>{</span> 
+<span class="hljs-keyword">char</span>* name;
+ <span class="hljs-keyword">int</span> age;
+};
+
+<span class="hljs-comment">/*结构体与动态内存分配*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">structAndMalloc</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n\n\n结构体与动态内存分配\n\n"</span>);
+	<span class="hljs-comment">// 申请堆内存空间 ， 空间地址是连续的</span>
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span>* <span class="hljs-title">person</span> = (<span class="hljs-title">struct</span> <span class="hljs-title">Person</span>*)<span class="hljs-title">malloc</span>(<span class="hljs-title">sizeof</span>(<span class="hljs-title">struct</span> <span class="hljs-title">Person</span>) * 10);</span>
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span>* <span class="hljs-title">p</span> = <span class="hljs-title">person</span>;</span>
+	p-&gt;name = <span class="hljs-string">"小九"</span>;
+	p-&gt;age = <span class="hljs-number">20</span>;
+	p++;
+	p-&gt;name = <span class="hljs-string">"非我"</span>;
+	p-&gt;age = <span class="hljs-number">24</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"遍历结构体动态内存：\n"</span>);
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Person</span>* <span class="hljs-title">loop_p</span> = <span class="hljs-title">person</span>;</span>
+	<span class="hljs-comment">// 遍历</span>
+	<span class="hljs-keyword">for</span> (; loop_p &lt; person + <span class="hljs-number">2</span>; loop_p++)
+	{
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"姓名：%s \t 年龄：%d\n"</span>, loop_p-&gt;name, loop_p-&gt;age);
+	}
+}
+</code></pre><blockquote><p>友情提示：</p></blockquote><ol><li>因为申请的动态内存返回的指针是内存空间的首地址 ， 所有可以通过指针运算<code>p++</code> ， 来进行结构体的赋值</li><li>在遍历动态的内存中的数据时候 ， 需要从首地址开始遍历 ， 所以需要多次将首地址赋值给不同的指针变量。</li></ol><h3 id="结构体与函数指针">结构体与函数指针 <a class="markdownIt-Anchor" href="#结构体与函数指针">#</a></h3><pre class="hljs"><code><span class="hljs-comment">/*结构体与函数指针*/</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Dog</span> {</span>
+	<span class="hljs-keyword">char</span>* name;
+	<span class="hljs-keyword">int</span> age;
+
+	<span class="hljs-keyword">void</span>(*dogWow)(<span class="hljs-keyword">char</span>* wow);
+};
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">dogWow</span><span class="hljs-params">(<span class="hljs-keyword">char</span>* wow)</span> </span>{
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"狗是：%s 叫\n"</span>, wow);
+}
+
+<span class="hljs-comment">/*结构体与函数指针的使用*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useStructAndFunction</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n\n\n"</span>);
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"结构体中，函数没有实现 ， 在创建结构体时 ， 将函数名称赋值给函数指针即可\n"</span>);
+	<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Dog</span> <span class="hljs-title">dog</span> = {</span> <span class="hljs-string">"小黄"</span>,<span class="hljs-number">3</span>,dogWow };
+	dog.dogWow(<span class="hljs-string">"汪汪。。。"</span>);
+}
+</code></pre><blockquote><p>友情提示：<br>1.因为结构体中不能有函数实体 ， 所以在创建结构体时 ， 将函数名称赋值给函数指针即可。</p></blockquote><h3 id="类型别名">类型别名 <a class="markdownIt-Anchor" href="#类型别名">#</a></h3><pre class="hljs"><code>
+<span class="hljs-comment">/*类型别名 关键字：typedef*/</span>
+<span class="hljs-comment">/*
+	1.不同名称代表在做不同的事情typedef int jint;
+	2.不同情况下，使用不同的别名
+	3.书写简洁
+*/</span>
+<span class="hljs-comment">// 简单别名</span>
+
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">char</span>* Name;
+
+<span class="hljs-comment">// 结构体别名</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">ImageInfo</span> {</span>
+	<span class="hljs-keyword">char</span>* name;
+	<span class="hljs-keyword">int</span> size;
+	<span class="hljs-keyword">char</span>* path;
+}ImageInfo , *ImageInfo_P;
+
+<span class="hljs-comment">/*修改文件名称*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">reFileName</span><span class="hljs-params">(ImageInfo_P imgeInfo_p, <span class="hljs-keyword">char</span>* reName)</span> </span>{
+	imgeInfo_p-&gt;name = reName;
+}
+
+<span class="hljs-comment">/*类型别名示例*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useTypedef</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-comment">// 普通变量别名使用</span>
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n\n\n类型别名示例\n\n"</span>);
+	Name name = <span class="hljs-string">"zeno"</span>;
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"类型别名：Name = %s\n"</span>, name);
+
+	<span class="hljs-comment">/*结构体别名使用 , 和使用java对象类似*/</span>
+	ImageInfo imageInfo;
+	<span class="hljs-keyword">char</span> pathStr[<span class="hljs-number">120</span>] = {<span class="hljs-string">"D://imag//"</span>};
+	imageInfo.name = <span class="hljs-string">"美丽风景.jpg"</span>;
+	<span class="hljs-comment">// 修改文件名称</span>
+	reFileName(&amp;imageInfo, <span class="hljs-string">"大中国.jpg"</span>);
+
+	imageInfo.size = <span class="hljs-number">2333</span>;
+	<span class="hljs-comment">// 拼接字符串</span>
+	<span class="hljs-built_in">strcat</span>(pathStr, imageInfo.name);
+	imageInfo.path = pathStr;
+
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"\n\n文件信息：\n文件名：%s\n文件大小：%d kb\n文件路径：%s\n"</span>, imageInfo.name, imageInfo.size, imageInfo.path);
+
+}
+</code></pre><blockquote><p>友情提示：<br>结构体别名和在结构体<code>}xxx;</code> ， 有所不同 ， 别名只是给结构体重新起了个名字 ， 本身不是结构体变量 ， 不能像<code>}xxx;</code>直接通过<code>xxx.xxx</code>进行操作 ， 别名还是需要声明之后 ， 才能进行<code>.xxx</code>操作 。</p></blockquote><p>在jni.h头文件中 ， 大量使用了结构体 ， 所有学好结构体是看懂jni.h的第一步 ， 下面我们来见识见识 ， jni.h中的结构体：</p><pre class="hljs"><code><span class="hljs-comment">/*
+ * JNI invocation interface.
+ */</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNIInvokeInterface</span> {</span>
+    <span class="hljs-keyword">void</span>*       reserved0;
+    <span class="hljs-keyword">void</span>*       reserved1;
+    <span class="hljs-keyword">void</span>*       reserved2;
+
+    jint        (*DestroyJavaVM)(JavaVM*);
+    jint        (*AttachCurrentThread)(JavaVM*, JNIEnv**, <span class="hljs-keyword">void</span>*);
+    jint        (*DetachCurrentThread)(JavaVM*);
+    jint        (*GetEnv)(JavaVM*, <span class="hljs-keyword">void</span>**, jint);
+    jint        (*AttachCurrentThreadAsDaemon)(JavaVM*, JNIEnv**, <span class="hljs-keyword">void</span>*);
+};
+</code></pre><blockquote><p>友情提示：<br>jint是int的别名</p></blockquote><h3 id="结语">结语 <a class="markdownIt-Anchor" href="#结语">#</a></h3><p>结构体就介绍到这里 ， 下一篇我们来学习C语言中的IO操作 。</p></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../c/c-6-str-op.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../c/c-8-file-io.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item chapter-item-current"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"c/c-7-struct-pointer.md",relative_root_path:"../",article_toc:'<ul class="markdownIt-TOC">\n<li>\n<ul>\n<li><a href="#%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8%EF%BC%9A">结构体的简单使用：</a></li>\n<li><a href="#%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E5%A4%9A%E7%A7%8D%E5%86%99%E6%B3%95%EF%BC%9A">结构体的多种写法：</a></li>\n<li><a href="#%E7%BB%93%E6%9E%84%E5%B5%8C%E5%A5%97%EF%BC%9A">结构嵌套：</a></li>\n<li><a href="#%E7%BB%93%E6%9E%84%E4%BD%93%E6%95%B0%E7%BB%84%EF%BC%9A">结构体数组：</a></li>\n<li><a href="#%E7%BB%93%E6%9E%84%E4%BD%93%E5%8A%A8%E6%80%81%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D">结构体动态内存分配</a></li>\n<li><a href="#%E7%BB%93%E6%9E%84%E4%BD%93%E4%B8%8E%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88">结构体与函数指针</a></li>\n<li><a href="#%E7%B1%BB%E5%9E%8B%E5%88%AB%E5%90%8D">类型别名</a></li>\n<li><a href="#%E7%BB%93%E8%AF%AD">结语</a></li>\n</ul>\n</li>\n</ul>\n'}</script><script src="../assets/js/app.js"></script></body></html>

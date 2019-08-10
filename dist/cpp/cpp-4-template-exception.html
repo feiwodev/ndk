@@ -1,0 +1,232 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>## 前言 - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../cpp/index.html" class="breadcrumb-item">C++基础</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../cpp/cpp-4-template-exception.html" class="breadcrumb-item">多态，模板，异常</a></div><h1 class="article-title">## 前言</h1><div class="article"><p>在学Java的时候 ， 我们会接触到面向对象的三大特征，封装，继承，多态 。而Java是从C<ins>里面脱胎出来的，所以也具有这些特征 ， 在上篇中 ， 介绍了继承，友元函数等 ， 今天来学习一下多态 。我相信大家对多态并不陌生 ， C</ins>中的多态和Java类似，只是实现起来有些差别 。说明一下：基础篇只是对语言语法的简单介绍， 并不会深入语言机制，将C++与Java的不同之处点出 ， 所以相对比较枯燥 ， 各位看官也可仅仅有个印象即可，再在用到的时候，就有迹可寻。</p><h3 id="多态">多态 <a class="markdownIt-Anchor" href="#多态">#</a></h3><p>C++的多态用法和Java类似 ， 只是需要虚函数的支撑。</p><blockquote><p>Meat.h</p></blockquote><pre class="hljs"><code><span class="hljs-comment">// 父类 .h</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> once</span>
+
+<span class="hljs-comment">/*肉类*/</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Meat</span> {</span>
+	
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-comment">// 使用虚函数 ， 实现多态</span>
+    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">getName</span><span class="hljs-params">()</span></span>;
+};
+
+</code></pre><blockquote><p>Meat.cpp</p></blockquote><pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">"Meat.h"</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>;
+
+<span class="hljs-keyword">void</span> Meat::getName() {
+
+	<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"我是肉类 -- super class"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;
+
+}
+</code></pre><p>父类将要被复写的函数需要<code>virtual</code>表示 ， 虚函数才具有之类复写的特性。</p><blockquote><p>Fish.h</p></blockquote><pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> once</span>
+
+<span class="hljs-comment">/*
+	鱼肉 继承 肉类
+*/</span>
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">"Meat.h"</span></span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Fish</span> :</span> <span class="hljs-keyword">public</span> Meat {
+
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">getName</span><span class="hljs-params">()</span></span>;
+};
+</code></pre><blockquote><p>Fish.cpp</p></blockquote><pre class="hljs"><code>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">"Fish.h"</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>;
+
+<span class="hljs-keyword">void</span> Fish::getName() {
+
+	<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"我是鱼肉。。。"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;
+}
+</code></pre><blockquote><p>Chicken.h</p></blockquote><pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> once</span>
+
+<span class="hljs-comment">/*
+	鸡肉 继承 肉类
+*/</span>
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">"Meat.h"</span></span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Chicken</span> :</span> <span class="hljs-keyword">public</span> Meat{
+
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">getName</span><span class="hljs-params">()</span></span>;
+
+};
+</code></pre><blockquote><p>Chicken.cpp</p></blockquote><pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">"Chicken.h"</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>;
+
+<span class="hljs-keyword">void</span> Chicken::getName() {
+
+	<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"我是鸡肉。。。"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;
+
+}
+</code></pre><blockquote><p>C++多态作用与用法和Java差不多</p></blockquote><pre class="hljs"><code><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">printMeatInfo</span><span class="hljs-params">(Meat &amp;m)</span> </span>{
+	m.getName();
+}
+
+<span class="hljs-comment">/*使用多态*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">usePolymorphism</span><span class="hljs-params">()</span> </span>{
+
+	Chicken c;
+	Fish f;
+
+	printMeatInfo(c);
+	printMeatInfo(f);
+}
+</code></pre><p>函数的对象参数使用引用传递，可以减少对象的的临时生成，加大对内存空间的利用率。多态要在用的时候才会真正体会到他的便捷 ， 在C++中配合纯抽象类使用更佳 。</p><h3 id="模板">模板 <a class="markdownIt-Anchor" href="#模板">#</a></h3><p>C<ins>中有模板函数还有模板类，类似于Java的泛型，在逻辑计算中，无需关心数据的具体类型 。在Java中，我们最常用的泛型救数<code>List</code>， 例如：<code>List&lt;String&gt; cities = new ArrayList();</code>下面，我们来看看C</ins>的模板函数。</p><pre class="hljs"><code><span class="hljs-comment">/*
+	模板函数 根据实际类型，自动推导
+*/</span>
+<span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> T&gt;
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">anySwap</span><span class="hljs-params">(T &amp;t1,T &amp;t2)</span> </span>{
+	T tmp = <span class="hljs-literal">NULL</span>;
+	tmp = t1; 
+	t1 = t2;
+	t2 = tmp;
+}
+
+<span class="hljs-comment">/*使用模板函数*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useTemplateFunc</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-keyword">int</span> i = <span class="hljs-number">10</span>; 
+	<span class="hljs-keyword">int</span> j = <span class="hljs-number">30</span>;
+
+	anySwap(i, j);
+
+	<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"i = "</span> &lt;&lt; i &lt;&lt; <span class="hljs-string">"   j = "</span> &lt;&lt; j &lt;&lt; <span class="hljs-built_in">endl</span>;
+
+	<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">" ------- 字符交换 ---------"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;
+
+	<span class="hljs-keyword">char</span>* c1 = <span class="hljs-string">"思念在蔓延"</span>;
+	<span class="hljs-keyword">char</span>* c2 = <span class="hljs-string">"一通电话在世界两边"</span>;
+
+	anySwap(c1, c2);
+
+	<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"c1 = "</span> &lt;&lt; c1 &lt;&lt; <span class="hljs-string">"   c2 = "</span> &lt;&lt; c2 &lt;&lt; <span class="hljs-built_in">endl</span>;
+}
+</code></pre><p>模板函数，在函数之前使用template<typename t>来声明模板函数，T为自动推导类型。下面，我们用模板，来模拟一下Java的ArrayList类。</typename></p><pre class="hljs"><code><span class="hljs-comment">/*
+	CPP  template class 
+
+	模板类 , 相当于Java的泛型类 , 模拟Java集合类
+*/</span>
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> <span class="hljs-built_in">std</span>;
+
+<span class="hljs-comment">/*
+	使用模板类加上纯虚函数模拟Java的Collection接口
+*/</span>
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> T&gt;
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Collection</span> {</span>
+
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">add</span><span class="hljs-params">(T t)</span> </span>= <span class="hljs-number">0</span>;
+	<span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">del</span><span class="hljs-params">(T t)</span> </span>= <span class="hljs-number">0</span>;
+	<span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword">void</span> <span class="hljs-title">change</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, T t)</span> </span>= <span class="hljs-number">0</span>;
+	<span class="hljs-function"><span class="hljs-keyword">virtual</span> T*  <span class="hljs-title">query</span><span class="hljs-params">()</span> </span>= <span class="hljs-number">0</span>;
+};
+
+<span class="hljs-comment">/*
+	模拟Java的ArrayList集合
+*/</span>
+<span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> T&gt;
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ArrayList</span> :</span> <span class="hljs-keyword">public</span> Collection&lt;T&gt; {
+	
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">add</span><span class="hljs-params">(T t)</span> </span>{
+
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">del</span><span class="hljs-params">(T t)</span> </span>{
+
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">change</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, T t)</span> </span>{
+
+	}
+	<span class="hljs-function">T*  <span class="hljs-title">query</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;
+	}
+};
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">templateClassDemo</span> {</span>
+
+<span class="hljs-keyword">public</span>:
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">useTemplateClass</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-comment">// 在使用的时候指定模板类的类型</span>
+		ArrayList&lt;<span class="hljs-keyword">int</span>&gt; a;
+		a.add(<span class="hljs-number">1</span>);
+		<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"使用CPP模板类, 模拟Java集合类"</span> &lt;&lt; <span class="hljs-built_in">endl</span>;
+	}
+
+};
+
+</code></pre><p>C++的模板特性和Java的泛型及其类似，只是写法上有所区别，万物都是相通的，变的是外在，不变的是算法核心。</p><h3 id="异常">异常 <a class="markdownIt-Anchor" href="#异常">#</a></h3><p>C++的异常比Java的异常处理自由，可以通过随意的定义数字字符等抛出，然后通过catch函数参数类型去匹配。</p><pre class="hljs"><code>    <span class="hljs-comment">/*CPP 可以抛出任意类型的Exception*/</span>
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">throwStringException</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">throw</span> <span class="hljs-string">"抛出字符类型Exception"</span>;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">throwIntException</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">throw</span> <span class="hljs-number">1</span>;
+	}
+
+    <span class="hljs-comment">/*捕获异常*/</span>
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">catchException</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">try</span>
+		{
+			throwStringException();
+			throwIntException();
+		
+		}
+		<span class="hljs-keyword">catch</span> (<span class="hljs-keyword">char</span>* e)
+		{
+			<span class="hljs-built_in">cout</span> &lt;&lt;<span class="hljs-string">"捕获String类型的异常信息 ： "</span>&lt;&lt; e &lt;&lt; <span class="hljs-built_in">endl</span>;
+		}
+		<span class="hljs-keyword">catch</span> (<span class="hljs-keyword">int</span> e1) {
+			<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"捕获int类型的异常信息："</span> &lt;&lt; e1 &lt;&lt; <span class="hljs-built_in">endl</span>;
+		}
+	}
+</code></pre><blockquote><p>自定义异常</p></blockquote><pre class="hljs"><code><span class="hljs-comment">/*自定义异常类*/</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomException</span> {</span>
+
+<span class="hljs-keyword">public</span>:
+	CustomException(<span class="hljs-keyword">char</span>* msg) {
+		<span class="hljs-keyword">this</span>-&gt;msg = msg;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">char</span>* <span class="hljs-title">showMsg</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>-&gt;msg;
+	}
+
+<span class="hljs-keyword">private</span>:
+	<span class="hljs-keyword">char</span>* msg;
+};
+</code></pre><blockquote><p>使用</p></blockquote><pre class="hljs"><code><span class="hljs-comment">// use</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">throwObjectException</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-comment">// 不要抛异常指针 ， new了对象指针之后必须销毁 ， 并且还会产生对象副本，占内存</span>
+		<span class="hljs-comment">// 还有标准异常处理 ， 查看API</span>
+		<span class="hljs-keyword">throw</span> CustomException(<span class="hljs-string">"我是自定义对象异常"</span>);
+	}
+
+      <span class="hljs-comment">/*捕获异常*/</span>
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">catchException</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">try</span>
+		{
+			
+			throwObjectException();
+		}
+		<span class="hljs-keyword">catch</span> (CustomException &amp;ex) {
+			<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"捕获自定义异常："</span> &lt;&lt; ex.showMsg() &lt;&lt; <span class="hljs-built_in">endl</span>;
+		}
+	}
+</code></pre><h3 id="结语">结语 <a class="markdownIt-Anchor" href="#结语">#</a></h3><p>C++基础系列基本上到此结束了，因其基本语法与C比较像，就没做过多介绍，基本上只做了面向对象部分的介绍。</p><p>C<ins>基础系列，断断续续，今天总算是可以告一段落了 ， 上个月由于一些事情停更了一段时间，日子也没以前那么悠闲了 ， 要学的东西如排山倒海般涌来，IT行业的发展是越来越快，要学的也越来越多，大到各种语言学习C/C</ins> ， Java ， Python ， JavaScript 。小到各种奇淫巧技 ， 无所不包 。</p><p>语言不是限定 ， 没有哪一个项目只用一种语言可以搞定的，学习语言，不只是学习那门语言的语法，更重要的是那门语言思想 。</p><h3 id="路漫漫其修远兮-，-吾将上下而求索-。">路漫漫其修远兮 ， 吾将上下而求索 。 <a class="markdownIt-Anchor" href="#路漫漫其修远兮-，-吾将上下而求索-。">#</a></h3></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../cpp/cpp-3-oop.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../jni/index.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item chapter-item-current"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"cpp/cpp-4-template-exception.md",relative_root_path:"../",article_toc:'<ul class="markdownIt-TOC">\n<li>\n<ul>\n<li><a href="#%E5%A4%9A%E6%80%81">多态</a></li>\n<li><a href="#%E6%A8%A1%E6%9D%BF">模板</a></li>\n<li><a href="#%E5%BC%82%E5%B8%B8">异常</a></li>\n<li><a href="#%E7%BB%93%E8%AF%AD">结语</a></li>\n<li><a href="#%E8%B7%AF%E6%BC%AB%E6%BC%AB%E5%85%B6%E4%BF%AE%E8%BF%9C%E5%85%AE-%EF%BC%8C-%E5%90%BE%E5%B0%86%E4%B8%8A%E4%B8%8B%E8%80%8C%E6%B1%82%E7%B4%A2-%E3%80%82">路漫漫其修远兮 ， 吾将上下而求索 。</a></li>\n</ul>\n</li>\n</ul>\n'}</script><script src="../assets/js/app.js"></script></body></html>

@@ -1,0 +1,6 @@
+dir: docs
+output: dist
+theme: oceandeep
+site: Android NDK开发之旅
+disqus: true
+hasComments: true

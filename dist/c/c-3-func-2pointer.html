@@ -1,0 +1,87 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>函数与二级指针 - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/index.html" class="breadcrumb-item">C语言基础</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/c-3-func-2pointer.html" class="breadcrumb-item">函数与二级指针</a></div><h1 class="article-title">函数与二级指针</h1><div class="article"><p>在上一篇中 ， 我们分析了指针在内存中是怎样存储的 ， 以及它是怎样操作变量的 ， 接下来 ， 我们谈谈 ， 函数 ， 二级指针 。</p><h3 id="函数">函数 <a class="markdownIt-Anchor" href="#函数">#</a></h3><p>C语言中函数的定义和java中方法的定义类似 ， 只是没有public , private等这样的权限控制 ， 定义如下：</p><pre class="hljs"><code>  
+返回值类型 functionName(参数类型 参数名称  , 参数类型 参数名称) {
+      <span class="hljs-comment">// 函数体</span>
+  }
+
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">add</span><span class="hljs-params">(<span class="hljs-keyword">int</span> num1 , <span class="hljs-keyword">int</span> num2)</span> </span>{
+      <span class="hljs-keyword">return</span> num1 + num2 ;
+}
+</code></pre><p>如果我们想在函数里面 ，修改传入的参数的值 ， 就如同java里面将对象传入方法中修改对象的属性 ， 在C语言通过指针也可以达到同样的效果 。</p><pre class="hljs"><code>
+ <span class="hljs-comment">/* 想要修改传入变量的值 ， 则需要使用指针通过变量的地址 ， 来修改变量的值 */</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">changeNum</span><span class="hljs-params">(<span class="hljs-keyword">int</span>* i)</span> </span>{
+	*i = <span class="hljs-number">300</span>;
+}
+
+</code></pre><p>如果不采用指针<code>changeNum(int i)</code> ， 函数参数里面的<code>int i</code> 则会为<code>i</code>变量开辟一个新的内存空间 ， 而不是我们传入的变量 。下面我们就来看看 ， 他们在内存中是怎样表现的 。</p><pre class="hljs"><code>  
+    <span class="hljs-comment">/*没有使用指针的函数*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">changeNum</span><span class="hljs-params">(<span class="hljs-keyword">int</span> i)</span> </span>{
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"函数中i的地址：%#x\n"</span>, &amp;i);
+	i = <span class="hljs-number">300</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-keyword">int</span> i = <span class="hljs-number">100</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"传入函数的 i 的地址：%#x\n"</span>,&amp;i);
+
+	<span class="hljs-comment">// 将变量i传入到函数中 , 不对变量去区地址</span>
+	changeNum(i);
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"修改后的值：%d\n"</span>, i);
+
+	system(<span class="hljs-string">"pause"</span>);
+
+}
+
+</code></pre><p>输出：</p><pre class="hljs"><code>
+传入函数的 i 的地址：<span class="hljs-number">0x9a2ffcd4</span>
+函数中i的地址：<span class="hljs-number">0x9a2ffcb0</span>
+修改后的值：<span class="hljs-number">100</span>
+
+</code></pre><p>我们看到传入的<code>i</code>变量的内存地址和函数中的<code>i</code>变量内存地址不一样 ， 并且函数也没有修改我们的<code>i</code>变量 ， 我们将上述代码 ， 做一下简单的修改 ， 只要将函数的形参改变为指针变量， 将修改的变量的变量内存地址传入到函数中 ， 如此在函数里面就可以修改传入的变量的值了 。</p><pre class="hljs"><code><span class="hljs-comment">/* 想要修改传入变量的值 ， 则需要使用指针通过变量的地址 ， 来修改变量的值*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">changeNum</span><span class="hljs-params">(<span class="hljs-keyword">int</span>* num)</span> </span>{
+	 <span class="hljs-built_in">printf</span>(<span class="hljs-string">"函数中i的地址：%#x\n"</span>, num);
+	*num = <span class="hljs-number">300</span>;
+} 
+
+changeNum(&amp;i);
+
+</code></pre><p>输出：</p><pre class="hljs"><code>传入函数的 i 的地址：<span class="hljs-number">0x4ccff624</span>
+函数中i的地址：<span class="hljs-number">0x4ccff624</span>
+修改后的值：<span class="hljs-number">300</span>
+
+</code></pre><p>因为我们传入的是<code>i</code>变量的内存地址 ， 所以函数中的<code>num</code>变量打印出的就是传入的<code>i</code>变量的内存地址 ， 拿到了<code>i</code>变量地址 ， 我们就可以通过指针操作传入地址的内存空间了 ， 我们将其修改为<code>300</code> ， 所以我们打出修改后的值是 ： 300</p><h3 id="二级指针">二级指针 <a class="markdownIt-Anchor" href="#二级指针">#</a></h3><p>所谓的二级指针 ， 就是指针的指针 ， 二级指针的内存空间中 ， 存储的是一级指针的内存地址 ，示例如下：</p><pre class="hljs"><code>  
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-keyword">int</span> i = <span class="hljs-number">10</span>;
+	<span class="hljs-comment">// p指针变量存储的是i的内存地址</span>
+	<span class="hljs-keyword">int</span>* p = &amp;i;
+	<span class="hljs-comment">// p1指针变量存储的是p的内存地址</span>
+	<span class="hljs-keyword">int</span>** p1 = &amp;p;
+
+	<span class="hljs-keyword">int</span> *p2 = <span class="hljs-number">100</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"指针作为普通变量：%d\n"</span>, p2);
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"i 的地址：%#x\n"</span>, &amp;i);
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"p 地址：%#x\n"</span>, &amp;p);
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"通过p1取得p的地址：%#x\n"</span>, p1);
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"通过p1取得i的地址：%#x\n"</span>, *p1);
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"通过p1取得i的值：%d\n"</span>, **p1);
+
+	<span class="hljs-comment">// 通过p1修改i的值</span>
+	**p1 = <span class="hljs-number">100</span>;
+
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"通过p1修改过的i的值：%d\n"</span>, i);
+
+	getchar();
+}
+
+</code></pre><p>多级指针 ， 就是要往上一级一级追溯 ， 然后通过<code>*</code>操作符来操作内存空间 ，二级指针内存模拟图：</p><figure><img src="http://upload-images.jianshu.io/upload_images/643851-ffca43a8c640a170.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="二级指针.png"><figcaption>二级指针.png</figcaption></figure><p>指针是操作内存的神器 ， 多级指针 ， 只要记住 ， 多级指针里面存储的是上级指针的地址即可 。</p></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../c/c-2-pointer.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../c/c-4-func-pointer.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item chapter-item-current"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"c/c-3-func-2pointer.md",relative_root_path:"../",article_toc:'<ul class="markdownIt-TOC">\n<li>\n<ul>\n<li><a href="#%E5%87%BD%E6%95%B0">函数</a></li>\n<li><a href="#%E4%BA%8C%E7%BA%A7%E6%8C%87%E9%92%88">二级指针</a></li>\n</ul>\n</li>\n</ul>\n'}</script><script src="../assets/js/app.js"></script></body></html>

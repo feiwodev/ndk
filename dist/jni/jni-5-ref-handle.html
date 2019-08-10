@@ -1,0 +1,196 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>## 前情提要 - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../jni/index.html" class="breadcrumb-item">Java与C通信的桥梁-JNI</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../jni/jni-5-ref-handle.html" class="breadcrumb-item">对象引用的处理</a></div><h1 class="article-title">## 前情提要</h1><div class="article"><p>在上一篇中 ， 我们了解到了 ， 创建一个Java对象的几个步骤：</p><blockquote><p>第一，<code>findClass</code>找到需要创建对象的类（全类名）<br>第二，得到构造方法的ID，构造方法名称，统一使用<code>&lt;init&gt;</code><br>第三，使用<code>NewObject</code>创建Java对象</p></blockquote><p>当创建了这个类的对象之后 ， 我们就可以使用这个类里面所提供的方法了 ， 那么我们就可以在C中使用Java中其他对象的方法了 。</p><h3 id="数组引用的处理">数组引用的处理 <a class="markdownIt-Anchor" href="#数组引用的处理">#</a></h3><p>在Java中 ， 使用<code>new</code>关键字创建对象 ， 创建之后我们就可以随意使用这个对象 ， 我们无需关心这个对象是什么时候被回收的 ， 对象的回收已经托管到了JVM的GC ， 由GC来帮我们回收无引用的对象 ， 那么，我们使用JNI技术传递给C/C++的对像要怎么做处理呢 ？</p><p>将对象引用传递给C/C<ins>时 ， C/C</ins>层就会持有Java对象 ， 如果不进行妥善处理 ， 对象多了就会出现内存泄漏问题 ， 所有在C/C++层使用Java对象时 ， 需要释放这个引用 。</p><p>下面就来看看数组引用的处理：</p><pre class="hljs"><code><span class="hljs-comment">// 对数组进行排序</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">useArraySort</span><span class="hljs-params">(<span class="hljs-keyword">int</span>[] array)</span> </span>;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+         <span class="hljs-comment">// Java数组在C中排序</span>
+         <span class="hljs-keyword">int</span>[] array = {<span class="hljs-number">1</span>,<span class="hljs-number">60</span>,<span class="hljs-number">20</span>,<span class="hljs-number">10</span>,<span class="hljs-number">4</span>,<span class="hljs-number">90</span>,<span class="hljs-number">23</span>} ;
+         jni.useArraySort(array);
+         <span class="hljs-comment">// 输出</span>
+	     <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; array.length; i++) {
+			System.out.println(<span class="hljs-string">"array == "</span>+array[i]);
+		}
+}
+</code></pre><p>将<code>array</code>对象传递给C ， C中的变量将持有<code>array</code>这个引用</p><pre class="hljs"><code>
+<span class="hljs-comment">// sort</span>
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">compare</span><span class="hljs-params">(<span class="hljs-keyword">int</span>* a, <span class="hljs-keyword">int</span>* b)</span> </span>{
+
+	<span class="hljs-keyword">return</span> (*a) - (*b);
+}
+
+<span class="hljs-comment">/*对数组进行排序*/</span>
+<span class="hljs-function">JNIEXPORT <span class="hljs-keyword">void</span> JNICALL <span class="hljs-title">Java_com_zeno_jni_HelloJNI_useArraySort</span>
+<span class="hljs-params">(JNIEnv *env, jobject jobj , jintArray jarray)</span> </span>{
+
+	jint* arrayElemts = (*env)-&gt;GetIntArrayElements(env, jarray, <span class="hljs-literal">NULL</span>);
+
+	jsize arraySize = (*env)-&gt;GetArrayLength(env, jarray);
+
+	qsort(arrayElemts,arraySize,<span class="hljs-keyword">sizeof</span>(jint),compare);
+
+	<span class="hljs-comment">// 释放引用 ， 因为数组和对象在java中都是引用 ， 都会在堆内存中开辟一块空间 ， 但我们使用完对象之后</span>
+	<span class="hljs-comment">// 需要将引用释放掉 ， 不然会很耗内存 ， 在一定程度上可能会造成内存溢出 。</span>
+	<span class="hljs-comment">//JNI_ABORT, Java数组不进行更新，但是释放C/C++数组</span>
+	<span class="hljs-comment">//JNI_COMMIT，Java数组进行更新，不释放C/C++数组（函数执行完，数组还是会释放）</span>
+	(*env)-&gt;ReleaseIntArrayElements(env, jarray, arrayElemts, JNI_COMMIT);
+
+}
+</code></pre><p>内存示意图：</p><figure><img src="http://upload-images.jianshu.io/upload_images/643851-12f6bb4ff09eacbe.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Java对象引用和C"><figcaption>Java对象引用和C</figcaption></figure><p>只要是Java对象 ， 在C中都需要释放，如String类型引用：</p><pre class="hljs"><code><span class="hljs-comment">// String类型引用释放</span>
+<span class="hljs-keyword">void</span> (JNICALL *ReleaseStringUTFChars)
+      (JNIEnv *env, jstring str, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* chars);
+
+</code></pre><p>在C中创建的对象引用也需要进行引用释放</p><pre class="hljs"><code><span class="hljs-comment">/*返回int类型的数组*/</span>
+<span class="hljs-function">JNIEXPORT jintArray JNICALL <span class="hljs-title">Java_com_zeno_jni_HelloJNI_getIntArray</span>
+<span class="hljs-params">(JNIEnv *env, jobject jobj,jint len)</span> </span>{
+
+	<span class="hljs-comment">// 创建一个jint类型的数组</span>
+	jintArray jArray = (*env)-&gt;NewIntArray(env, len);
+
+	<span class="hljs-comment">// 得到数组首个元素指针</span>
+	jint* arrayElements = (*env)-&gt;GetIntArrayElements(env, jArray, <span class="hljs-literal">NULL</span>);
+
+	<span class="hljs-comment">// 指针运算</span>
+	<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">for</span> (; i &lt; len; i++)
+	{
+		arrayElements[i] = i;
+	}
+
+	<span class="hljs-comment">// 同步</span>
+	(*env)-&gt;ReleaseIntArrayElements(env, jArray, arrayElements, JNI_COMMIT);
+
+	<span class="hljs-keyword">return</span> jArray;
+}
+
+java code
+<span class="hljs-comment">// 在C中生存数组 ， 返回到Java中</span>
+<span class="hljs-keyword">private</span> native <span class="hljs-keyword">int</span>[] getIntArray(<span class="hljs-keyword">int</span> len) ;
+
+<span class="hljs-keyword">int</span>[] intArray = jni.getIntArray(<span class="hljs-number">20</span>);
+	<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; intArray.length; i++) {
+		System.out.println(<span class="hljs-string">"int array === "</span>+intArray[i]);
+}
+
+</code></pre><blockquote><p>为什么在C中创建的对象也需要释放 ？<br>在上述代码中 ， 创建一个数组对象 ， 并将引用传递给了Java层 ， 将引用交给了Java之后 ， C就需要释放这个引用 ， 不然会一直持有 ， GC也不会回收这个对象 。</p></blockquote><h3 id="引用的分级">引用的分级 <a class="markdownIt-Anchor" href="#引用的分级">#</a></h3><p>在Java中引用也有强弱之分 ， 使用<code>new</code>创建的对象就是强引用，也可以使用<code>WeakReference</code>将对象包装成一个弱引用对象 。在C中也不列外 ， C中也有一套<code>全局引用</code>，<code>局部引用</code>，<code>弱全局引用</code>等等 。</p><blockquote><p>一 ， 局部引用</p></blockquote><pre class="hljs"><code><span class="hljs-comment">// 局部引用</span>
+<span class="hljs-comment">// 作用：C使用到或自行创建Java对象，需要告知虚拟机在合适的时候回收对象</span>
+
+<span class="hljs-comment">//局部引用，通过DeleteLocalRef手动释放对象</span>
+<span class="hljs-comment">//1.访问一个很大的java对象，使用完之后，还要进行复杂的耗时操作</span>
+<span class="hljs-comment">//2.创建了大量的局部引用，占用了太多的内存，而且这些局部引用跟后面的操作没有关联性</span>
+
+<span class="hljs-function">JNIEXPORT <span class="hljs-keyword">void</span> JNICALL <span class="hljs-title">Java_com_zeno_jni_HelloJNI_localRef</span>
+<span class="hljs-params">(JNIEnv *env, jobject jobj)</span> </span>{
+	
+	<span class="hljs-comment">// 找到类</span>
+	jclass dateClass = (*env)-&gt;FindClass(env, <span class="hljs-string">"java/util/Date"</span>);
+
+	<span class="hljs-comment">// 得到构造方法ID</span>
+	jmethodID dateConstructorId = (*env)-&gt;GetMethodID(env, dateClass, <span class="hljs-string">"&lt;init&gt;"</span>, <span class="hljs-string">"()V"</span>);
+
+	<span class="hljs-comment">// 创建Date对象</span>
+	jobject dateObject = (*env)-&gt;NewObject(env, dateClass, dateConstructorId);
+
+	<span class="hljs-comment">// 创建一个局部引用</span>
+	jobject dateLocalRef = (*env)-&gt;NewLocalRef(env, dateObject);
+
+	<span class="hljs-comment">// 省略N行代码</span>
+
+	<span class="hljs-comment">// 不再使用对象 ， 则通知GC回收对象</span>
+	(*env)-&gt;DeleteLocalRef(env, dateLocalRef);
+	<span class="hljs-comment">// 因为dateObject也是局部对象，可以直接回收dateObject对象</span>
+	<span class="hljs-comment">//(*env)-&gt;DeleteLocalRef(env, dateObject);</span>
+
+}
+</code></pre><blockquote><p>全局引用</p></blockquote><pre class="hljs"><code>
+<span class="hljs-comment">// 全局引用</span>
+<span class="hljs-comment">// 定义全局引用</span>
+<span class="hljs-comment">//共享(可以跨多个线程)，手动控制内存使用</span>
+jstring globalStr;
+
+<span class="hljs-comment">/*创建全局引用*/</span>
+<span class="hljs-function">JNIEXPORT <span class="hljs-keyword">void</span> JNICALL <span class="hljs-title">Java_com_zeno_jni_HelloJNI_createGlobalRef</span>
+<span class="hljs-params">(JNIEnv *env, jobject jobj)</span> </span>{
+
+	jstring jStr = (*env)-&gt;NewStringUTF(env, <span class="hljs-string">"I want your love !"</span>);
+
+	<span class="hljs-comment">// 创建一个全局引用</span>
+	globalStr = (*env)-&gt;NewGlobalRef(env, jStr);
+}
+
+<span class="hljs-comment">/*使用全局引用*/</span>
+<span class="hljs-function">JNIEXPORT jstring JNICALL <span class="hljs-title">Java_com_zeno_jni_HelloJNI_useGlobalRef</span>
+<span class="hljs-params">(JNIEnv *env, jobject jobj)</span> </span>{
+
+	<span class="hljs-keyword">return</span> globalStr;
+
+}
+
+<span class="hljs-comment">/*释放全局引用*/</span>
+<span class="hljs-function">JNIEXPORT <span class="hljs-keyword">void</span> JNICALL <span class="hljs-title">Java_com_zeno_jni_HelloJNI_deleteGlobalRef</span>
+<span class="hljs-params">(JNIEnv *env, jobject jobj)</span> </span>{
+
+	<span class="hljs-comment">// 释放全局引用</span>
+	(*env)-&gt;DeleteGlobalRef(env, globalStr);
+
+}
+
+<span class="hljs-comment">//弱全局引用</span>
+<span class="hljs-comment">//节省内存，在内存不足时可以是释放所引用的对象</span>
+<span class="hljs-comment">//可以引用一个不常用的对象，如果为NULL，临时创建</span>
+<span class="hljs-comment">//创建：NewWeakGlobalRef,销毁：DeleteGlobalWeakRef</span>
+</code></pre><blockquote><p>引用缓存</p></blockquote><pre class="hljs"><code><span class="hljs-comment">/*变量缓存*/</span>
+<span class="hljs-function">JNIEXPORT <span class="hljs-keyword">void</span> JNICALL <span class="hljs-title">Java_com_zeno_jni_HelloJNI_variableCach</span>
+<span class="hljs-params">(JNIEnv *env, jobject jobj)</span> </span>{
+
+	<span class="hljs-comment">// 找到String类</span>
+	jclass stringClass = (*env)-&gt;FindClass(env, <span class="hljs-string">"java/lang/String"</span>);
+
+	<span class="hljs-comment">// 得到构造方法ID</span>
+	jmethodID stringConstructorID = (*env)-&gt;GetMethodID(env, stringClass, <span class="hljs-string">"&lt;init&gt;"</span>, <span class="hljs-string">"()V"</span>);
+
+	<span class="hljs-comment">// 创建String类</span>
+	<span class="hljs-comment">//// 缓存局部变量 ， 只创建一次 ， 关键字static</span>
+	<span class="hljs-keyword">static</span> jobject stringObject = <span class="hljs-literal">NULL</span>;
+	<span class="hljs-keyword">if</span> (stringObject == <span class="hljs-literal">NULL</span>)
+	{
+		stringObject = (*env)-&gt;NewObject(env, stringClass, stringConstructorID);
+
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"------------- create String object --------------\n"</span>);
+	}
+
+	<span class="hljs-comment">/*jobject stringObject = (*env)-&gt;NewObject(env, stringClass, stringConstructorID);
+
+	printf("------------- create String object --------------\n");*/</span>
+
+}
+</code></pre><p>引用的分级 ， 上述代码都有比较详细的注释 ，这里就不多加解释了 ， 说一下全局引用的简单使用场景。</p><p>在开发中 ， 我们常常需要初始化一些变量 ， 进行全局使用 ， 这里我们的全局引用就发挥了作用了 。</p><pre class="hljs"><code><span class="hljs-comment">// 初始化全局变量</span>
+<span class="hljs-comment">//初始化全局变量，动态库加载完成之后，立刻缓存起来</span>
+jstring initGlobalStr;
+
+<span class="hljs-function">JNIEXPORT <span class="hljs-keyword">void</span> JNICALL <span class="hljs-title">Java_com_zeno_jni_HelloJNI_initVariable</span>
+<span class="hljs-params">(JNIEnv *env, jclass jcls)</span> </span>{
+
+	jstring initStr = (*env)-&gt;NewStringUTF(env, <span class="hljs-string">"create global init variable "</span>);
+
+	initGlobalStr = (*env)-&gt;NewGlobalRef(env, initStr);
+}
+
+<span class="hljs-comment">/*访问初始化全局变量*/</span>
+<span class="hljs-function">JNIEXPORT jstring JNICALL <span class="hljs-title">Java_com_zeno_jni_HelloJNI_accessInitGlobalVariable</span>
+<span class="hljs-params">(JNIEnv *env, jobject jobj)</span> </span>{
+	
+	<span class="hljs-keyword">return</span> initGlobalStr;
+}
+
+
+__java code__ 
+
+<span class="hljs-keyword">static</span>{
+        <span class="hljs-comment">// 加载动态库</span>
+        System.loadLibrary(<span class="hljs-string">"Hello_JNI"</span>) ;
+        <span class="hljs-comment">// 初始化全局变量</span>
+        initVariable();
+    }
+</code></pre><p>C中引用的分级和在Java中的类型 ， 都需要在合适的环境使用 。</p><h3 id="结语">结语 <a class="markdownIt-Anchor" href="#结语">#</a></h3><p>这是JNI系列的最后一篇 ， 在这个系列中 ， 我们大致了解了JNI的开发流程， 以及一些常用的API和技法 ， 在下篇中 ， 我们正式进入NDK开发 ， 将我们在JNI中学到的应用起来 。NDK基础过后 ， 将会进入到C<ins>语言的学习 ， 我们要学会使用第三方C/C</ins>库 。</p><h3 id="参考">参考 <a class="markdownIt-Anchor" href="#参考">#</a></h3><p><a href="http://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html#global_and_local_references" target="_blank" rel="noopener">global_and_local_references</a></p></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../jni/jni-4-call-constructor-method.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../ndk/index.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item chapter-item-current"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"jni/jni-5-ref-handle.md",relative_root_path:"../",article_toc:'<ul class="markdownIt-TOC">\n<li>\n<ul>\n<li><a href="#%E6%95%B0%E7%BB%84%E5%BC%95%E7%94%A8%E7%9A%84%E5%A4%84%E7%90%86">数组引用的处理</a></li>\n<li><a href="#%E5%BC%95%E7%94%A8%E7%9A%84%E5%88%86%E7%BA%A7">引用的分级</a></li>\n<li><a href="#%E7%BB%93%E8%AF%AD">结语</a></li>\n<li><a href="#%E5%8F%82%E8%80%83">参考</a></li>\n</ul>\n</li>\n</ul>\n'}</script><script src="../assets/js/app.js"></script></body></html>

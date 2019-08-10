@@ -1,0 +1,82 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>动态内存分配 - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/index.html" class="breadcrumb-item">C语言基础</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/c-5-dynamic-m.html" class="breadcrumb-item">动态内存分配</a></div><h1 class="article-title">动态内存分配</h1><div class="article"><p>在上一篇我们了解C语言中的函数及函数指针 ， 使用函数指针 ， 模拟了网络请求的回调方式 ， 今天我们来学习动态内存分配。</p><p>我们在使用java的时候 ， 所有的内存都交由JVM做处理 ， 我们无法直接控制 ， 虽然很少导致内存溢出 ， 但是程序占用内存却会越来越大 ， 所以我们在使用Android手机的时候 ， 刚开始很流畅 ， 用着用着就非常卡 ， 在打开大文件或是播放gif的时候 ， 如果采用java编写处理引擎 ， 则会比较卡 ， 因为开辟的内存空间无法控制 ， GC回收又不是即时的 ， 这时候就需要我们使用JNI技术 ， 使用C语言进行处理 。接下来 ，我们就来学习C语言中的动态内存分配 。</p><p>C语言中内存的大致分配：</p><table><thead><tr><th>内存</th><th>描述</th><th>特性</th></tr></thead><tbody><tr><td>栈区</td><td>是一个确定的常数(win 1~2M) 不同平台会有不同大小 超出会提示stackoverflow</td><td>自动分配 ， 自动释放</td></tr><tr><td>堆区</td><td>用于动态内存分配</td><td>手动分配和释放 ， 可占用80%内存</td></tr><tr><td>全局区或静态区</td><td>在程序中明确被初始化的全局变量、静态变量（包括全局静态变量和局部静态变量）和常量数据（如字符串常量）</td><td>只初始化一次</td></tr><tr><td>程序代码区</td><td>代码区指令根据程序设计流程依次执行，对于顺序指令，则只会执行一次（每个进程），如果反复，则需要使用跳转指令，如果进行递归，则需要借助栈来实现。</td><td>代码区的指令中包括操作码和要操作的对象（或对象地址引用）</td></tr></tbody></table><p>C语言中动态分配内存是在堆区 ， java语言中<code>new</code>一个对象 ， 也会在堆内存中开辟一块空间 ， 来存储我们创建的这个对象 。在C语言中 ， 我们在堆区开辟一块空间使用的关键字是<code>malloc</code> ， <code>malloc</code>函数定义：</p><pre class="hljs"><code><span class="hljs-keyword">void</span>* __<span class="hljs-function">cdecl <span class="hljs-title">malloc</span><span class="hljs-params">(
+    _In_ _CRT_GUARDOVERFLOW <span class="hljs-keyword">size_t</span> _Size
+    )</span></span>;
+</code></pre><p>使用如下：</p><pre class="hljs"><code><span class="hljs-comment">// 动态内存分配 ， 使用malloc函数在对内存中开辟连续的内存空间 , 单位是：字节</span>
+<span class="hljs-comment">// 申请一块40M的堆内存</span>
+<span class="hljs-keyword">int</span>* p = (<span class="hljs-keyword">int</span>*)<span class="hljs-built_in">malloc</span>(<span class="hljs-number">1024</span> *<span class="hljs-number">1024</span> * <span class="hljs-number">10</span> * <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">int</span>));
+</code></pre><p>下面我们来模拟一下病毒：</p><pre class="hljs"><code><span class="hljs-comment">/*动态内存分配*/</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">heapFunc</span><span class="hljs-params">()</span> </span>{
+	<span class="hljs-comment">// 动态内存分配 ， 使用malloc函数在对内存中开辟连续的内存空间 , 单位是：字节</span>
+	<span class="hljs-comment">// 申请一块40M的堆内存</span>
+	<span class="hljs-keyword">int</span>* p = (<span class="hljs-keyword">int</span>*)<span class="hljs-built_in">malloc</span>(<span class="hljs-number">1024</span> *<span class="hljs-number">1024</span> * <span class="hljs-number">10</span> * <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">int</span>));
+}
+
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>)
+	{
+        <span class="hljs-comment">// 睡一秒执行一次</span>
+		Sleep(<span class="hljs-number">1000</span>);
+		heapFunc();
+	}
+
+	getchar();
+
+}
+</code></pre><p>打开任务管理器 ， 我们可以看到我们共存所占内存 ， 正在以40M每秒的速度 ， 蹭蹭的往上涨 ， 以前的蠕虫病毒就是如此 ， 不断的消耗内存 ， 然后导致系统崩溃 。</p><p>在使用静态内存分配的时候 ， 内存大小是固定的 ， 很容易超出栈内存的最大值， 预估大小往往大大的超出使用大小 ， 浪费内存 。使用<code>malloc</code>申请内存 ， 最重要的一个点就是可以动态改变申请的内存大小 ， 可以使用<code>realloc</code>函数来重新申请内存大小，<code>realloc</code>函数定义：</p><pre class="hljs"><code><span class="hljs-keyword">void</span>* __<span class="hljs-function">cdecl <span class="hljs-title">realloc</span><span class="hljs-params">(
+    _Pre_maybenull_ _Post_invalid_ <span class="hljs-keyword">void</span>*  _Block,
+    _In_ _CRT_GUARDOVERFLOW        <span class="hljs-keyword">size_t</span> _Size
+    )</span></span>;
+</code></pre><p>使用如下：</p><pre class="hljs"><code><span class="hljs-comment">// 重新申请内存大小 ， 传入申请的内存指针 ， 申请内存总大小</span>
+<span class="hljs-keyword">int</span>* p2 = <span class="hljs-built_in">realloc</span>(p, (len + add) * <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">int</span>));
+</code></pre><p>下面我们来应用一下：</p><pre class="hljs"><code><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-keyword">int</span> len;
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"请输入首次分配内存大小："</span>);
+	<span class="hljs-built_in">scanf</span>(<span class="hljs-string">"%d"</span>, &amp;len);
+	<span class="hljs-comment">// 动态分配内存 ， 内存空间是连续的</span>
+	<span class="hljs-keyword">int</span>* p = (<span class="hljs-keyword">int</span>*)<span class="hljs-built_in">malloc</span>(len * <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">int</span>));
+	<span class="hljs-comment">// 给申请的内存空间赋值</span>
+	<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">for</span> (; i &lt; len ; i++)
+	{    <span class="hljs-comment">// 生成随机数赋值</span>
+		p[i] = rand() % <span class="hljs-number">100</span>;
+
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"array[%d] = %d , %#x\n"</span>, i, p[i], &amp;p[i]);
+	}
+
+	<span class="hljs-comment">// 在原有内存上面，重新分配内存大小</span>
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"请输入增加的内存大小"</span>);
+	<span class="hljs-keyword">int</span> add;
+	<span class="hljs-built_in">scanf</span>(<span class="hljs-string">"%d"</span>, &amp;add);
+	<span class="hljs-comment">// 重新申请内存大小 ， 传入申请的内存指针 ， 申请内存总大小</span>
+	<span class="hljs-keyword">int</span>* p2 = (<span class="hljs-keyword">int</span>*)<span class="hljs-built_in">realloc</span>(p, (len + add) * <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">int</span>));
+	<span class="hljs-comment">// 给新申请的内存空间赋值</span>
+	<span class="hljs-keyword">int</span> j = len;
+	<span class="hljs-keyword">for</span> (; j &lt; len + add ; j++)
+	{
+		p2[j] = rand() % <span class="hljs-number">200</span>;
+	
+	}
+
+	<span class="hljs-comment">// 打印</span>
+	j = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">for</span> (; j &lt; len + add; j++)
+	{
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"array[%d] = %d , %#x\n"</span>, j, p2[j], &amp;p2[j]);
+	}
+	
+	<span class="hljs-comment">// 回收申请的动态内存</span>
+	<span class="hljs-keyword">if</span> (p2 != <span class="hljs-literal">NULL</span>)
+	{
+		<span class="hljs-built_in">free</span>(p2);
+		p2 = <span class="hljs-literal">NULL</span>;
+	}
+		
+	system(<span class="hljs-string">"pause"</span>);
+}
+</code></pre><p>使用<code>malloc</code>和<code>realloc</code>配合 ， 就可以模拟出我们java中的集合类型，动态改变内存空间大小 。 使用<code>malloc</code> 第一次申请的内存首地址和第二次申请的内存首地址可能相同也可能不同 ， 因为申请的内存是连续的 ， 所有 ， 但第一次申请的空间的后续空间不够用时 ， 会重新开辟新的空间 ， 并将数据copy到新的空间里面 。</p><blockquote><p>内存分配的几个注意细节：<br>1.不能多次释放<br>2.释放完之后 ， 给指针置NULL，标志释放完成<br>3.内存泄漏 （p重新赋值之后 ， 再free ， 并没有真正释放 ， 要在赋值之前释放前一个内存空间）</p></blockquote></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../c/c-4-func-pointer.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../c/c-6-str-op.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item chapter-item-current"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"c/c-5-dynamic-m.md",relative_root_path:"../",article_toc:""}</script><script src="../assets/js/app.js"></script></body></html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html><html><head><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta charset="utf-8"><title>预编译及jni-h分析 - Android NDK开发之旅</title><meta name="description" content=""><meta name="author" content=""><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1"><link rel="stylesheet" href="../assets/css/bulma.min.css"><link rel="stylesheet" href="../assets/css/app.css"><!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]--><link rel="shortcut icon" href=""></head><body dir="ltr"><nav class="columns navbar"><div class="column logo is-3 is-offset-1"><a class="is-brand" href="../index.html">Android NDK开发之旅</a></div></nav><div class="columns content"><div class="column is-2-desktop is-3-widescreen is-hidden-touch"></div><div class="column article-container is-11-tablet is-8-desktop is-6-widescreen"><div class="breadcrumb-area"><a href="../index.html" class="breadcrumb-item">Home</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/index.html" class="breadcrumb-item">C语言基础</a><span class="breadcrumb-delimiter"> &gt; </span><a href="../c/c-10-jni.html" class="breadcrumb-item">预编译及jni-h分析</a></div><h1 class="article-title">预编译及jni-h分析</h1><div class="article"><p>在上篇中我们了解了 ， 多类型集合的联合体 ， 固定值集合的枚举 ， 内容相对比较简单 ， 今天我们谈谈预编译 ， 也是本系列最后一个知识点 ， C语言基础系列就要告一段落了 ， 要开始我们的jni系列了 ， JNI（Java Native Interface） 是java与C/C<ins>进行通信的一种技术 ， 使用JNI技术，可以java调用C/C</ins>的函数对象等等，Android中的Framework层与Native层就是采用的JNI技术 。</p><h3 id="预编译">预编译 <a class="markdownIt-Anchor" href="#预编译">#</a></h3><blockquote><p>预编译（预处理，宏定义，宏替换）这种叫法 ， 关键字<code>#define</code> ， 其本质是替换文本。</p></blockquote><p>首先我们了解一下C语言的执行过程：</p><ol><li>编译 --&gt; 生成目标代码（.obj）</li><li>连接 --&gt; 将目标代码与C函数库合并 ， 生成最终可执行文件</li><li>执行</li></ol><blockquote><p>预编译 ， 主要在编译时期完成文本替换工作 ， 常见的预编译指令有： <code>#include</code>,<code>ifndef</code>,<code>#endif</code>,<code>define</code>,<code>#pragma once</code>等等 。</p></blockquote><p>我们在jni.h头文件中 ， 可以看到较多的预编译指令 ， 例如:</p><pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">if</span> defined(__cplusplus)</span>
+<span class="hljs-keyword">typedef</span> _JNIEnv JNIEnv;
+<span class="hljs-keyword">typedef</span> _JavaVM JavaVM;
+<span class="hljs-meta">#<span class="hljs-meta-keyword">else</span></span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNINativeInterface</span>* <span class="hljs-title">JNIEnv</span>;</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNIInvokeInterface</span>* <span class="hljs-title">JavaVM</span>;</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span></span>
+</code></pre><p>如果编译环境是C++， 则使用：</p><pre class="hljs"><code><span class="hljs-keyword">typedef</span> _JNIEnv JNIEnv;
+<span class="hljs-keyword">typedef</span> _JavaVM JavaVM;
+</code></pre><p>C语言编译环境 ， 则使用：</p><pre class="hljs"><code><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNINativeInterface</span>* <span class="hljs-title">JNIEnv</span>;</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNIInvokeInterface</span>* <span class="hljs-title">JavaVM</span>;</span>
+</code></pre><p>这里的定义就是我们后需要结束的<code>JNIEnv</code>指针 ， 在C++环境中<code>JNIEnv</code>是一个一级指针 ， 但是在C语言环境中 ， 他是一个二级指针 ，这个我们将在jni系列中 ， 再详细说明 。</p><h3 id="预编译示例">预编译示例 <a class="markdownIt-Anchor" href="#预编译示例">#</a></h3><pre class="hljs"><code><span class="hljs-comment">// 定义一个常数</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> MAX 100 </span>
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-keyword">int</span> i = <span class="hljs-number">99</span>;
+	<span class="hljs-keyword">if</span> (i &lt; MAX) <span class="hljs-comment">// 在编译时期， 会将MAX替换成100</span>
+	{
+		<span class="hljs-built_in">printf</span>(<span class="hljs-string">"i 小于 MAX\n"</span>);
+	}
+}
+</code></pre><p>定义一个宏常量<code>MAX</code>他的代表<code>100</code> ， 宏常数没有类型 ， 只做替换。</p><h3 id="宏函数">宏函数 <a class="markdownIt-Anchor" href="#宏函数">#</a></h3><blockquote><p><code>#define</code> 预编译指令 ， 不光可以定义常量 ， 还可以定义函数 ， 因为其本质是替换 ， 所有可以简化很多很长的函数名称 。</p></blockquote><p>在jni.h中 ， 也可以看到宏函数 ， 如下：</p><pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> CALL_TYPE_METHODA(_jtype, _jname)                                   \
+    __NDK_FPABI__                                                           \
+    _jtype Call##_jname##MethodA(jobject obj, jmethodID methodID,           \
+        jvalue* args)                                                       \
+    { return functions-&gt;Call##_jname##MethodA(this, obj, methodID, args); }</span>
+</code></pre><p>其中<code>(_jtype, _jname)</code>里面的<code>_jtype</code> , <code>_jname</code>都是替换标识 ， 替换<code>_jtype</code>,<code>##_jname##</code> 。</p><h3 id="宏函数示例">宏函数示例 <a class="markdownIt-Anchor" href="#宏函数示例">#</a></h3><pre class="hljs"><code><span class="hljs-comment">// 普通函数</span>
+<span class="hljs-keyword">void</span> _jni_define_func_read() {
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"read\n"</span>);
+}
+
+<span class="hljs-keyword">void</span> _jni_define_func_write() {
+	<span class="hljs-built_in">printf</span>(<span class="hljs-string">"write\n"</span>);
+}
+
+<span class="hljs-comment">// 定义宏函数</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> jni(NAME) _jni_define_func_##NAME() ;</span>
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+
+	<span class="hljs-comment">// 宏函数</span>
+	<span class="hljs-comment">//jni(read); 可以简化函数名称</span>
+    jni(write) ;
+
+	system(<span class="hljs-string">"pause"</span>);
+}
+</code></pre><p>宏函数的核心就是替换 ， 只要记住这一点就够了 。下面我们就来做另一个实例 ， 打印类似android Log日志的形式的函数。</p><pre class="hljs"><code><span class="hljs-comment">// 模拟Android日志输出 , 核心就是替换</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> LOG(LEVE,FORMAT,...) printf(##LEVE); printf(##FORMAT,__VA_ARGS__) ;</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> LOGI(FORMAT,...) LOG(<span class="hljs-meta-string">"INFO:"</span>,##FORMAT,__VA_ARGS__) ;</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> LOGE(FORMAT,...) LOG(<span class="hljs-meta-string">"ERROR:"</span>,##FORMAT,__VA_ARGS__) ;</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> LOGW(FORMAT,...) LOG(<span class="hljs-meta-string">"WARN:"</span>,##FORMAT,__VA_ARGS__) ;</span>
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+
+	LOGI(<span class="hljs-string">"%s"</span>, <span class="hljs-string">"自定义日志。。。。\n"</span>);
+	LOGE(<span class="hljs-string">"%s"</span>, <span class="hljs-string">"我是错误日志...\n"</span>);
+
+	system(<span class="hljs-string">"pause"</span>);
+}
+</code></pre><p>输出：</p><pre class="hljs"><code>INFO:自定义日志。。。。
+ERROR:我是错误日志...
+</code></pre><p>我们可以看到输出信息前面带有类型标识 。在这里做几点代码说明：</p><blockquote><ol><li>上述代码中<code>LEVE</code>,<code>FORMAT</code>都是自定义的 ， 可以是任意名称 ， 只有后面替换的名称一致即可。</li></ol></blockquote><ol start="2"><li><code>LOG(LEVE,FORMAT,...)</code>中的<code>...</code>表示可变参数 ， 替换则是使用<code>__VA_ARGS__</code>这种固定写法 。</li><li>宏函数的核心就是——替换</li></ol><p>预编译指令就介绍到这里 ， 其中心点就是<code>替换</code> 。 学到这里 ， C语言的基础也介绍得七七八八了 ， 下面一起来分析分析 ， 我们编写JNI代码的一个比较重要的头文件jni.h 。</p><h3 id="简要分析jnih">简要分析jni.h <a class="markdownIt-Anchor" href="#简要分析jnih">#</a></h3><p>jni.h我们编写NDK的时候需要引入的一个头文件 ， 它位于<code>android-ndk-r10e\platforms\android-21\arch-arm\usr\include\jni.h</code>不同的平台都有相应的jni.h 。</p><p>在文件开始部分 ， 定义了很多类型别名 ， 区分C++与C的编译环境 ， 如下：</p><pre class="hljs"><code><span class="hljs-meta">#<span class="hljs-meta-keyword">ifdef</span> __cplusplus</span>
+<span class="hljs-comment">/*
+ * Reference types, in C++
+ */</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">jobject</span> {</span>};
+<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">jclass</span> :</span> <span class="hljs-keyword">public</span> _jobject {};
+<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">jstring</span> :</span> <span class="hljs-keyword">public</span> _jobject {};
+<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">jarray</span> :</span> <span class="hljs-keyword">public</span> _jobject {};
+<span class="hljs-class"><span class="hljs-keyword">class</span> _<span class="hljs-title">jobjectArray</span> :</span> <span class="hljs-keyword">public</span> _jarray {};
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">else</span> <span class="hljs-comment">/* not __cplusplus */</span></span>
+
+<span class="hljs-comment">/*
+ * Reference types, in C.
+ */</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">void</span>*           jobject;
+<span class="hljs-keyword">typedef</span> jobject         jclass;
+<span class="hljs-keyword">typedef</span> jobject         jstring;
+<span class="hljs-keyword">typedef</span> jobject         jarray;
+<span class="hljs-keyword">typedef</span> jarray          jobjectArray;
+</code></pre><p>接着定义了对象引用的枚举 ， 和方法签名的结构体：</p><pre class="hljs"><code><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">enum</span> jobjectRefType {
+    JNIInvalidRefType = <span class="hljs-number">0</span>,
+    JNILocalRefType = <span class="hljs-number">1</span>,
+    JNIGlobalRefType = <span class="hljs-number">2</span>,
+    JNIWeakGlobalRefType = <span class="hljs-number">3</span>
+} jobjectRefType;
+
+<span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> {</span>
+    <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* name;
+    <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* signature;
+    <span class="hljs-keyword">void</span>*       fnPtr;
+} JNINativeMethod;
+</code></pre><p>接下来就是最重要的JNIEnv了 ， 区分了C和C++环境</p><pre class="hljs"><code><span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">JNIEnv</span>;</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">JavaVM</span>;</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNINativeInterface</span>* <span class="hljs-title">C_JNIEnv</span>;</span>
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">if</span> defined(__cplusplus)</span>
+<span class="hljs-keyword">typedef</span> _JNIEnv JNIEnv;
+<span class="hljs-keyword">typedef</span> _JavaVM JavaVM;
+<span class="hljs-meta">#<span class="hljs-meta-keyword">else</span></span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNINativeInterface</span>* <span class="hljs-title">JNIEnv</span>;</span>
+<span class="hljs-keyword">typedef</span> <span class="hljs-keyword">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNIInvokeInterface</span>* <span class="hljs-title">JavaVM</span>;</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">endif</span></span>
+</code></pre><p>JNIEnv是一个结构体指针 ， 里面定义了很多函数 ， 有调用java方法的函数 ， 转换java类型的函数 ， 我可以看到 ， C编译环境中 ， JNIEnv是<code>struct JNINativeInterface*</code>的指针别名，我们来看看<code>JNINativeInterface</code>结构体是怎样的：</p><pre class="hljs"><code><span class="hljs-comment">/*
+ * Table of interface function pointers.
+ */</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNINativeInterface</span> {</span>
+    <span class="hljs-keyword">void</span>*       reserved0;
+    <span class="hljs-keyword">void</span>*       reserved1;
+    <span class="hljs-keyword">void</span>*       reserved2;
+    <span class="hljs-keyword">void</span>*       reserved3;
+
+    jint        (*GetVersion)(JNIEnv *);
+
+    jclass      (*DefineClass)(JNIEnv*, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>*, jobject, <span class="hljs-keyword">const</span> jbyte*,
+                        jsize);
+    jclass      (*FindClass)(JNIEnv*, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>*);
+
+    jmethodID   (*FromReflectedMethod)(JNIEnv*, jobject);
+    jfieldID    (*FromReflectedField)(JNIEnv*, jobject);
+    <span class="hljs-comment">/* spec doesn't show jboolean parameter */</span>
+    jobject     (*ToReflectedMethod)(JNIEnv*, jclass, jmethodID, jboolean);
+
+    jclass      (*GetSuperclass)(JNIEnv*, jclass);
+    jboolean    (*IsAssignableFrom)(JNIEnv*, jclass, jclass);
+
+</code></pre><p>大部分的操作都是在<code>JNINativeInterface</code>这个结构体里面，定义了很多操作函数 ， 比较常见的字符处理函数：</p><pre class="hljs"><code>jstring     (*NewStringUTF)(JNIEnv*, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>*);
+jsize       (*GetStringUTFLength)(JNIEnv*, jstring);
+<span class="hljs-comment">/* JNI spec says this returns const jbyte*, but that's inconsistent */</span>
+<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* (*GetStringUTFChars)(JNIEnv*, jstring, jboolean*);
+</code></pre><blockquote><ol><li>将字符指针转换成java的String类型</li></ol></blockquote><ol start="2"><li>得到java的String类型长度</li><li>将java的String类型转换成C的字符指针</li></ol><p>值得注意的是 ， C++的JNIEnv结构体指针 ， 并没有重新实现 ， 而生将C中的<code>JNINativeInterface</code>结构体 ， 重新打了一次包 ， 如下：</p><pre class="hljs"><code><span class="hljs-comment">/*
+ * C++ object wrapper.
+ *
+ * This is usually overlaid on a C struct whose first element is a
+ * JNINativeInterface*.  We rely somewhat on compiler behavior.
+ */</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> _<span class="hljs-title">JNIEnv</span> {</span>
+    <span class="hljs-comment">/* do not rename this; it does not seem to be entirely opaque */</span>
+    <span class="hljs-keyword">const</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">JNINativeInterface</span>* <span class="hljs-title">functions</span>;</span>
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">if</span> defined(__cplusplus)</span>
+
+    <span class="hljs-function">jint <span class="hljs-title">GetVersion</span><span class="hljs-params">()</span>
+    </span>{ <span class="hljs-keyword">return</span> functions-&gt;GetVersion(<span class="hljs-keyword">this</span>); }
+
+    <span class="hljs-function">jclass <span class="hljs-title">DefineClass</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *name, jobject loader, <span class="hljs-keyword">const</span> jbyte* buf,
+        jsize bufLen)</span>
+    </span>{ <span class="hljs-keyword">return</span> functions-&gt;DefineClass(<span class="hljs-keyword">this</span>, name, loader, buf, bufLen); }
+
+    <span class="hljs-function">jclass <span class="hljs-title">FindClass</span><span class="hljs-params">(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* name)</span>
+    </span>{ <span class="hljs-keyword">return</span> functions-&gt;FindClass(<span class="hljs-keyword">this</span>, name); }
+</code></pre><p>因为C++是面向对象语言 ， 所有有上下文环境变量<code>this</code> ， 简化了C语言中调用函数需要传递本身结构体指针的操作 。</p><p>分析了部分jni.h的源码 ， 后续的源码 ， 我相信看完C语言系列， 也可以看得懂 ， 这里就不再做分析了 ， 读者可自行查看源码分析一遍 ，对写jni代码还是有好处的 ， 至少对JNIEnv结构体指针中的函数有一个大致的印象 。</p><h3 id="结语">结语 <a class="markdownIt-Anchor" href="#结语">#</a></h3><p>C语言基础系列 ， 就宣告完结了 ， 还有很多知识点没讲到 ， 还有很多需要学习 ， 但我们不是要把C语言学透了学精了 ， 再去学JNI 和NDK， 这样 ， 不知要到何年何月了 。 所以 ， 先学基础了解概貌 ， 将java与C结合起来 ， 着手做些东西出来 ， 然后再继续深入 。</p><blockquote><p>语言都是相通的 ， 关键是解决问题的思路 。</p></blockquote></div><div dir="ltr" class="level article-bar is-mobile"><div class="level-item has-text-centered"><a title="previous page" class="previouse-article-link" href="../c/c-9-enum.html"><span class="icon icon-previous" data-icon="previous"></span><span class="link-content">&laquo; Previous</span></a></div><div class="level-item has-text-centered"><a title="font size" class="link-item link-item-size"><span class="icon icon-size" data-icon="size"></span></a></div><div class="level-item has-text-centered"><a title="table of content" class="link-item link-item-toc"><span class="icon icon-toc" data-icon="toc"></span></a></div><div class="level-item has-text-centered"><a title="top" href="#"><span class="icon icon-up" data-icon="up"></span> <span class="link-content">⤊ Top</span></a></div><div class="level-item has-text-centered"><a title="next page" class="next-article-link" href="../cpp/index.html"><span class="icon icon-next" data-icon="next"></span><span class="link-content">Next &raquo;</span></a></div></div></div><div class="column is-2-widescreen is-hidden"></div></div><div class="columns foot"><div class="column is-3 is-offset-9 build-by">Build by <a href="https://github.com/ruanyf/loppo" target="_blank">Loppo</a> 0.6.15</div></div><div class="book-toc notification is-warning is-hidden"><h3>Table of chapters &nbsp;<span class="title-close"><a class="button is-danger"> Close</a></span></h3><ul class="chapter-area"><li class="chapter-item"><a href="../c/index.html">C语言基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-collapse" data-icon="collapse"></span></a></li><ul class="chapter-level-1 chapter-level-1-current"><li class="chapter-item"><a href="../c/c-1-basic.html">基础语法</a></li><li class="chapter-item"><a href="../c/c-2-pointer.html">指针内存分析</a></li><li class="chapter-item"><a href="../c/c-3-func-2pointer.html">函数与二级指针</a></li><li class="chapter-item"><a href="../c/c-4-func-pointer.html">函数指针</a></li><li class="chapter-item"><a href="../c/c-5-dynamic-m.html">动态内存分配</a></li><li class="chapter-item"><a href="../c/c-6-str-op.html">字符操作</a></li><li class="chapter-item"><a href="../c/c-7-struct-pointer.html">结构体与指针</a></li><li class="chapter-item"><a href="../c/c-8-file-io.html">文件IO</a></li><li class="chapter-item"><a href="../c/c-9-enum.html">联合体与枚举</a></li><li class="chapter-item chapter-item-current"><a href="../c/c-10-jni.html">预编译及jni-h分析</a></li></ul><li class="chapter-item"><a href="../cpp/index.html">C++基础</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../cpp/cpp-1-namespace-struct-ref.html">命名空间结构体和引用</a></li><li class="chapter-item"><a href="../cpp/cpp-2-constructor-copy_func.html">构造函数，析构函数，拷贝构造函数</a></li><li class="chapter-item"><a href="../cpp/cpp-3-oop.html">new对象，继承，友元函数，函数的可变参数</a></li><li class="chapter-item"><a href="../cpp/cpp-4-template-exception.html">多态，模板，异常</a></li></ul><li class="chapter-item"><a href="../jni/index.html">Java与C通信的桥梁-JNI</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../jni/jni-1-basic.html">JNI概念及开发流程</a></li><li class="chapter-item"><a href="../jni/jni-2-h-file.html">头文件分析</a></li><li class="chapter-item"><a href="../jni/jni-3-call-java-field-method.html">C语言调用Java字段与方法</a></li><li class="chapter-item"><a href="../jni/jni-4-call-constructor-method.html">C语言调用构造方法</a></li><li class="chapter-item"><a href="../jni/jni-5-ref-handle.html">对象引用的处理</a></li></ul><li class="chapter-item"><a href="../ndk/index.html">Android NDK编写</a>&nbsp;<a class="first-level-collapse"><span class="icon icon-expand" data-icon="expand"></span></a></li><ul class="chapter-level-1"><li class="chapter-item"><a href="../ndk/ndk-1-as-ndk.html">使用Android-Studio编写NDK</a></li><li class="chapter-item"><a href="../ndk/ndk-2-file-split-join.html">文件加密解密与分割合并</a></li><li class="chapter-item"><a href="../ndk/ndk-3-update-1.html">增量更新之服务器端生成差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-4-update-2.html">增量更新之客户端合并差分包</a></li><li class="chapter-item"><a href="../ndk/ndk-5-conf.html">基于已有项目的NDK环境配置</a></li></ul></ul></div><div class="progress-indicator"></div><!-- SCRIPTS --><script>var LOPPO={current_path:"c/c-10-jni.md",relative_root_path:"../",article_toc:'<ul class="markdownIt-TOC">\n<li>\n<ul>\n<li><a href="#%E9%A2%84%E7%BC%96%E8%AF%91">预编译</a></li>\n<li><a href="#%E9%A2%84%E7%BC%96%E8%AF%91%E7%A4%BA%E4%BE%8B">预编译示例</a></li>\n<li><a href="#%E5%AE%8F%E5%87%BD%E6%95%B0">宏函数</a></li>\n<li><a href="#%E5%AE%8F%E5%87%BD%E6%95%B0%E7%A4%BA%E4%BE%8B">宏函数示例</a></li>\n<li><a href="#%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90jnih">简要分析jni.h</a></li>\n<li><a href="#%E7%BB%93%E8%AF%AD">结语</a></li>\n</ul>\n</li>\n</ul>\n'}</script><script src="../assets/js/app.js"></script></body></html>
